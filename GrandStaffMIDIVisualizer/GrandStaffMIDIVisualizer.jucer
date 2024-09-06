@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT name="GrandStaffMIDIVisualizer" companyName="Brynjar Reynisson" version="1.0.0"
+              userNotes="Paints G and F clefs and shows what notes are being played. Also prints chord names."
+              companyWebsite="https://breynisson.neocities.org/" defines="PIP_JUCE_EXAMPLES_DIRECTORY=QzpcVXNlcnNcTGVub3ZvXEpVQ0VcZXhhbXBsZXM="
+              projectType="audioplug" pluginAUIsSandboxSafe="1" pluginManufacturer="Brynjar Reynisson"
+              pluginFormats="buildVST3,buildAU,buildStandalone" pluginCharacteristicsValue="pluginWantsMidiIn,pluginProducesMidiOut,pluginIsMidiEffectPlugin"
+              useAppConfig="0" addUsingNamespaceToJuceHeader="1" id="smCvDp"
+              jucerFormatVersion="1">
+  <MAINGROUP id="bMaV9S" name="GrandStaffMIDIVisualizer">
+    <GROUP id="{0C99DFAA-E7F1-9A2E-0E53-E2048698FFA0}" name="Source">
+      <FILE id="WNMqav" name="Chords.cpp" compile="1" resource="0" file="../Chords.cpp"/>
+      <FILE id="yhbgHA" name="GrandStaffMIDIVisualizer.h" compile="0" resource="0"
+            file="../GrandStaffMIDIVisualizer.h"/>
+      <FILE id="xv3fMt" name="Main.cpp" compile="1" resource="0" file="../Main.cpp"/>
+      <FILE id="PC0Mt2" name="MainComponent.cpp" compile="1" resource="0"
+            file="../MainComponent.cpp"/>
+      <FILE id="Yzzndk" name="MainComponent.h" compile="0" resource="0" file="../MainComponent.h"/>
+      <FILE id="UyZVID" name="Whole_note.svg" compile="0" resource="1" file="../Whole_note.svg"/>
+      <FILE id="pPchYp" name="Grand_staff_DM_03.svg" compile="0" resource="1"
+            file="../Grand_staff_DM_03.svg"/>
+      <FILE id="zzZo2g" name="Natural.svg" compile="0" resource="1" file="../Natural.svg"/>
+      <FILE id="fXGw7b" name="Sharp.svg" compile="0" resource="1" file="../Sharp.svg"/>
+      <FILE id="sevUhZ" name="Flat.svg" compile="0" resource="1" file="../Flat.svg"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="GrandStaffMIDIVisualizer"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="GrandStaffMIDIVisualizer"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path=""/>
+        <MODULEPATH id="juce_audio_devices" path=""/>
+        <MODULEPATH id="juce_audio_formats" path=""/>
+        <MODULEPATH id="juce_audio_plugin_client" path=""/>
+        <MODULEPATH id="juce_audio_processors" path=""/>
+        <MODULEPATH id="juce_audio_utils" path=""/>
+        <MODULEPATH id="juce_core" path=""/>
+        <MODULEPATH id="juce_data_structures" path=""/>
+        <MODULEPATH id="juce_events" path=""/>
+        <MODULEPATH id="juce_graphics" path=""/>
+        <MODULEPATH id="juce_gui_basics" path=""/>
+        <MODULEPATH id="juce_gui_extra" path=""/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+    <VS2022 targetFolder="Builds/VisualStudio2022" extraCompilerFlags="/bigobj">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="GrandStaffMIDIVisualizer"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="GrandStaffMIDIVisualizer"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path=""/>
+        <MODULEPATH id="juce_audio_devices" path=""/>
+        <MODULEPATH id="juce_audio_formats" path=""/>
+        <MODULEPATH id="juce_audio_plugin_client" path=""/>
+        <MODULEPATH id="juce_audio_processors" path=""/>
+        <MODULEPATH id="juce_audio_utils" path=""/>
+        <MODULEPATH id="juce_core" path=""/>
+        <MODULEPATH id="juce_data_structures" path=""/>
+        <MODULEPATH id="juce_events" path=""/>
+        <MODULEPATH id="juce_graphics" path=""/>
+        <MODULEPATH id="juce_gui_basics" path=""/>
+        <MODULEPATH id="juce_gui_extra" path=""/>
+      </MODULEPATHS>
+    </VS2022>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="GrandStaffMIDIVisualizer"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="GrandStaffMIDIVisualizer"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path=""/>
+        <MODULEPATH id="juce_audio_devices" path=""/>
+        <MODULEPATH id="juce_audio_formats" path=""/>
+        <MODULEPATH id="juce_audio_plugin_client" path=""/>
+        <MODULEPATH id="juce_audio_processors" path=""/>
+        <MODULEPATH id="juce_audio_utils" path=""/>
+        <MODULEPATH id="juce_core" path=""/>
+        <MODULEPATH id="juce_data_structures" path=""/>
+        <MODULEPATH id="juce_events" path=""/>
+        <MODULEPATH id="juce_graphics" path=""/>
+        <MODULEPATH id="juce_gui_basics" path=""/>
+        <MODULEPATH id="juce_gui_extra" path=""/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+</JUCERPROJECT>
