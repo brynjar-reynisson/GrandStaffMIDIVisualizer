@@ -1,3 +1,26 @@
+/*
+  ==============================================================================
+
+   This file is part of the GrandStaffMIDIVisualizer plugin code.
+   Copyright (c) Brynjar Reynisson
+
+   The code included in this file is provided under the terms of the ISC license
+   http://www.isc.org/downloads/software-support-policy/isc-license. Permission
+   to use, copy, modify, and/or distribute this software for any purpose with or
+   without fee is hereby granted provided that the above copyright notice and
+   this permission notice appear in all copies.
+
+   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+   REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+   INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+   LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+   OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+   PERFORMANCE OF THIS SOFTWARE.
+
+  ==============================================================================
+*/
+
 #include "MainComponent.h"
 #include <cmath>
 #include <set>
@@ -16,7 +39,7 @@ void MainComponent::init(PluginModel* model)
     sharpButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
     sharpButton.setColour(TextButton::buttonOnColourId, Colours::white);
     sharpButton.setToggleable(true);
-    sharpButton.setToggleState(true, true);
+    sharpButton.setToggleState(pluginModel->sharp, true);
     sharpButton.setTooltip(String("Sharp notation"));
     addAndMakeVisible(sharpButton);
 
@@ -25,7 +48,7 @@ void MainComponent::init(PluginModel* model)
     flatButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
     flatButton.setColour(TextButton::buttonOnColourId, Colours::white);
     flatButton.setToggleable(true);
-    flatButton.setToggleState(false, true);
+    flatButton.setToggleState(!pluginModel->sharp, true);
     flatButton.setTooltip("Flat notation");
     addAndMakeVisible(flatButton);
 
@@ -34,7 +57,7 @@ void MainComponent::init(PluginModel* model)
     holdNoteButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
     holdNoteButton.setColour(TextButton::buttonOnColourId, Colours::white);
     holdNoteButton.setToggleable(true);
-    holdNoteButton.setToggleState(false, true);
+    holdNoteButton.setToggleState(pluginModel->holdNotes, true);
     holdNoteButton.setTooltip("Hold notes");
     addAndMakeVisible(holdNoteButton);
 
@@ -69,9 +92,10 @@ void MainComponent::resized()
     chordsLabel.setBounds(bounds.getX() + 3, bounds.getBottom() - labelHeight - 3, bounds.getRight() - 3, labelHeight);
 
     int size = bounds.getHeight() / 20;
+    int buttonSpace = size / 10;
     sharpButton.setBounds(0, 0, size, size);
-    flatButton.setBounds(size, 0, size, size);
-    holdNoteButton.setBounds(size * 2, 0, size, size);
+    flatButton.setBounds(size + buttonSpace, 0, size, size);
+    holdNoteButton.setBounds(size * 2 + buttonSpace * 2, 0, size, size);
 
     leftArrowButton.setBounds(bounds.getWidth() - size * 4, 0, size, size);
     octaveLabel.setBounds(bounds.getWidth() - size * 3, 0, size * 2, size);

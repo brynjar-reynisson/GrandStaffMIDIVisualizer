@@ -1,8 +1,8 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE framework examples.
-   Copyright (c) Raw Material Software Limited
+   This file is part of the GrandStaffMIDIVisualizer plugin code.
+   Copyright (c) Brynjar Reynisson
 
    The code included in this file is provided under the terms of the ISC license
    http://www.isc.org/downloads/software-support-policy/isc-license. Permission
@@ -67,12 +67,28 @@ public:
         : AudioProcessor (getBusesLayout())
     {
         state.addChild ({ "uiState", { { "width",  600 }, { "height", 300 } }, {} }, -1, nullptr);
-        startTimerHz (60);
+        //startTimerHz (60);
         for (int i = 0; i < 127; i++)
             pluginModel.midiNotes[i] = 0;
+
+        addParameter(isSharp = new juce::AudioParameterBool("sharp", // parameterID
+            "Sharp", // parameter name
+            true)); // default value
+        addParameter(isHoldNotes = new juce::AudioParameterBool("holdNotes", // parameterID
+            "Hold Notes", // parameter name
+            false)); // default value
+        addParameter(octaves = new juce::AudioParameterInt("octaves", // parameter ID
+            "Transpose Octaves",
+            -3, //minValue
+            3, //maxValue,
+            0)); //default value            
     }
 
-    ~GrandStaffMIDIVisualizerProcessor() override { stopTimer(); }
+    ~GrandStaffMIDIVisualizerProcessor() override { 
+        //stopTimer(); 
+        //if (editor != nullptr)
+        //    delete editor;
+    }
     PluginModel pluginModel;
 
     void processBlock (AudioBuffer<float>& audio,  MidiBuffer& midi) override 
@@ -98,7 +114,7 @@ public:
                 hasMidiChanges = true;
             }
         }
-        if (hasMidiChanges)
+        if (hasMidiChanges && editor != nullptr)
         {
             editor->postCommandMessage(1);
         }
@@ -127,12 +143,28 @@ public:
     {
         if (auto xmlState = state.createXml())
             copyXmlToBinary (*xmlState, destData);
+
+        std::unique_ptr<juce::XmlElement> xml(new juce::XmlElement("Parameters"));
+        xml->setAttribute("sharp", pluginModel.sharp);
+        xml->setAttribute("holdNotes", pluginModel.holdNotes);
+        xml->setAttribute("octaves", pluginModel.transposeOctaves);
+        copyXmlToBinary(*xml, destData);
     }
 
     void setStateInformation (const void* data, int size) override
     {
-        if (auto xmlState = getXmlFromBinary (data, size))
-            state = ValueTree::fromXml (*xmlState);
+        if (auto xmlState = getXmlFromBinary(data, size))
+        {
+            state = ValueTree::fromXml(*xmlState);
+            if (xmlState->hasTagName("Parameters"))
+            {
+                pluginModel.sharp = (bool)xmlState->getBoolAttribute("sharp", true);
+                pluginModel.holdNotes = (bool)xmlState->getBoolAttribute("holdNotes", false);
+                pluginModel.transposeOctaves = (int)xmlState->getIntAttribute("octaves", 0);
+                if(editor != nullptr)
+                    editor->postCommandMessage(1);
+            }
+        }
     }
 
 private:
@@ -153,6 +185,11 @@ private:
             lastUIHeight.addListener (this);
 
             addAndMakeVisible(mainComponent);            
+        }
+
+        ~Editor()
+        {
+            owner.editor = nullptr;
         }
 
         void paint (Graphics& g) override
@@ -201,6 +238,11 @@ private:
     }
 
     ValueTree state { "state" };
+
+
+    juce::AudioParameterBool* isSharp;
+    juce::AudioParameterBool* isHoldNotes;
+    juce::AudioParameterInt* octaves;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GrandStaffMIDIVisualizerProcessor)
 };
