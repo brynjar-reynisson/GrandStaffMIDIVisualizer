@@ -123,6 +123,7 @@ public:
     void paint(Graphics& g) override;
     void resized() override;
     void buttonClicked(juce::Button* button) override;
+    void onParametersChanged();
 
 private:
     void drawStaff(Graphics& g, StaffCalculator& staffCalculator);

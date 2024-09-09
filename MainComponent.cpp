@@ -29,57 +29,64 @@ void MainComponent::init(PluginModel* model)
 {
     this->pluginModel = model;
     chordsLabel.setFont(juce::Font(16.0f, juce::Font::bold));
-    chordsLabel.setText("Coming soon - chords!", NotificationType::dontSendNotification);
+    chordsLabel.setText("", NotificationType::dontSendNotification);
     chordsLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     chordsLabel.setJustificationType(juce::Justification::left);
-    addAndMakeVisible(chordsLabel);
 
     sharpButton.addListener(this);
     sharpButton.setImages(sharpSvg.get());
     sharpButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
     sharpButton.setColour(TextButton::buttonOnColourId, Colours::white);
     sharpButton.setToggleable(true);
-    sharpButton.setToggleState(pluginModel->sharp, true);
     sharpButton.setTooltip(String("Sharp notation"));
-    addAndMakeVisible(sharpButton);
 
     flatButton.addListener(this);
     flatButton.setImages(flatSvg.get());
     flatButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
     flatButton.setColour(TextButton::buttonOnColourId, Colours::white);
     flatButton.setToggleable(true);
-    flatButton.setToggleState(!pluginModel->sharp, true);
     flatButton.setTooltip("Flat notation");
-    addAndMakeVisible(flatButton);
 
     holdNoteButton.addListener(this);
     holdNoteButton.setImages(noteSvg.get());
     holdNoteButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
     holdNoteButton.setColour(TextButton::buttonOnColourId, Colours::white);
     holdNoteButton.setToggleable(true);
-    holdNoteButton.setToggleState(pluginModel->holdNotes, true);
     holdNoteButton.setTooltip("Hold notes");
-    addAndMakeVisible(holdNoteButton);
 
     leftArrowButton.addListener(this);
     leftArrowButton.setButtonText("<");
     leftArrowButton.setColour(TextButton::textColourOffId, Colours::black);
     leftArrowButton.setColour(TextButton::buttonColourId, Colours::white);
     leftArrowButton.setTooltip("Octave down");
-    addAndMakeVisible(leftArrowButton);
 
-    octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
     octaveLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     octaveLabel.setColour(juce::Label::backgroundColourId, Colour(230, 230, 230));
     octaveLabel.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(octaveLabel);
 
     rightArrowButton.addListener(this);
     rightArrowButton.setButtonText(">");
     rightArrowButton.setColour(TextButton::textColourOffId, Colours::black);
     rightArrowButton.setColour(TextButton::buttonColourId, Colours::white);
     rightArrowButton.setTooltip("Octave up");
+
+    onParametersChanged();
+
+    addAndMakeVisible(chordsLabel);
+    addAndMakeVisible(sharpButton);
+    addAndMakeVisible(flatButton);
+    addAndMakeVisible(holdNoteButton);
+    addAndMakeVisible(leftArrowButton);
+    addAndMakeVisible(octaveLabel);
     addAndMakeVisible(rightArrowButton);
+}
+
+void MainComponent::onParametersChanged()
+{
+    sharpButton.setToggleState(pluginModel->sharp, false);
+    flatButton.setToggleState(!pluginModel->sharp, false);
+    holdNoteButton.setToggleState(pluginModel->holdNotes, false);
+    octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
 }
 
 void MainComponent::resized()
@@ -159,6 +166,8 @@ static std::set<int> conflictLosers = {
 
 void MainComponent::paint(Graphics& g)
 {
+    onParametersChanged();
+
     g.fillAll(juce::Colours::white);
     StaffCalculator staffCalculator(getLocalBounds());
     drawStaff(g, staffCalculator);
@@ -170,6 +179,13 @@ void MainComponent::paint(Graphics& g)
         if (pluginModel->midiNotes[i] == 1)
             midiNotes.insert(i);
     }
+
+        /*
+        std::set<int> midiNotes{
+        48, 51, 55, 58, 62
+    };
+    */
+
 
     chordsLabel.setText(Chords::name(midiNotes, pluginModel->sharp, false), NotificationType::dontSendNotification);
 

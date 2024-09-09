@@ -64,35 +64,56 @@ class GrandStaffMIDIVisualizerProcessor final : public AudioProcessor,
 {
 public:
     GrandStaffMIDIVisualizerProcessor()
-        : AudioProcessor (getBusesLayout())
+        : AudioProcessor (getBusesLayout()),
+        parameters(*this, nullptr, juce::Identifier("GrandStaffMIDIVisualizerParameters"),
+            {
+                std::make_unique<juce::AudioParameterBool>("sharp",            // parameterID
+                                                             "Sharp",            // parameter name
+                                                             true),             // default value
+                std::make_unique<juce::AudioParameterBool>("holdNotes",            // parameterID
+                                                             "Hold Notes",            // parameter name
+                                                             false),             // default value
+                std::make_unique<juce::AudioParameterInt>("octaves",      // parameterID
+                                                            "Octaves",     // parameter name
+                                                            -3,
+                                                            3,
+                                                            0)              // default value
+            })        
     {
-        state.addChild ({ "uiState", { { "width",  600 }, { "height", 300 } }, {} }, -1, nullptr);
-        //startTimerHz (60);
+        state.addChild({ "uiState", { { "width",  600 }, { "height", 300 } }, {} }, -1, nullptr);
+
         for (int i = 0; i < 127; i++)
             pluginModel.midiNotes[i] = 0;
+        editor = nullptr;
 
-        addParameter(isSharp = new juce::AudioParameterBool("sharp", // parameterID
-            "Sharp", // parameter name
-            true)); // default value
-        addParameter(isHoldNotes = new juce::AudioParameterBool("holdNotes", // parameterID
-            "Hold Notes", // parameter name
-            false)); // default value
-        addParameter(octaves = new juce::AudioParameterInt("octaves", // parameter ID
-            "Transpose Octaves",
-            -3, //minValue
-            3, //maxValue,
-            0)); //default value            
+        sharpParameter = parameters.getRawParameterValue("sharp");
+        holdNotesParameter = parameters.getRawParameterValue("holdNotes");
+        octavesParameter = parameters.getRawParameterValue("octaves");
     }
 
-    ~GrandStaffMIDIVisualizerProcessor() override { 
-        //stopTimer(); 
-        //if (editor != nullptr)
-        //    delete editor;
-    }
-    PluginModel pluginModel;
+    ~GrandStaffMIDIVisualizerProcessor() override {}
 
     void processBlock (AudioBuffer<float>& audio,  MidiBuffer& midi) override 
     {
+        bool hasParamChanges = false;
+        bool newSharpValue = *sharpParameter > 0.5f ? true : false;
+        bool newHoldNotesValue = *holdNotesParameter > 0.5 ? true : false;
+        if (newSharpValue != pluginModel.sharp)
+        {
+            hasParamChanges = true;
+            pluginModel.sharp = newSharpValue;
+        }
+        if (newHoldNotesValue != pluginModel.holdNotes)
+        {
+            hasParamChanges = true;
+            pluginModel.holdNotes = newHoldNotesValue;
+        }
+        if ((int)*octavesParameter != pluginModel.transposeOctaves)
+        {
+            hasParamChanges = true;
+            pluginModel.transposeOctaves = (int)*octavesParameter;
+        }
+
         audio.clear();
         bool hasMidiChanges = false;
         for (const MidiMessageMetadata metadata : midi)
@@ -114,7 +135,7 @@ public:
                 hasMidiChanges = true;
             }
         }
-        if (hasMidiChanges && editor != nullptr)
+        if ((hasMidiChanges || hasParamChanges) && editor != nullptr)
         {
             editor->postCommandMessage(1);
         }
@@ -125,7 +146,7 @@ public:
     bool hasEditor() const override                                           { return true; }
     AudioProcessorEditor* createEditor() override                             { editor = new Editor(*this); return editor; }
 
-    const String getName() const override                                     { return "MIDI Logger"; }
+    const String getName() const override                                     { return "Grand Staff MIDI Visualizer"; }
     bool acceptsMidi() const override                                         { return true; }
     bool producesMidi() const override                                        { return true; }
     double getTailLengthSeconds() const override                              { return 0.0; }
@@ -142,12 +163,10 @@ public:
     void getStateInformation (MemoryBlock& destData) override
     {
         if (auto xmlState = state.createXml())
-            copyXmlToBinary (*xmlState, destData);
+            copyXmlToBinary(*xmlState, destData);
 
-        std::unique_ptr<juce::XmlElement> xml(new juce::XmlElement("Parameters"));
-        xml->setAttribute("sharp", pluginModel.sharp);
-        xml->setAttribute("holdNotes", pluginModel.holdNotes);
-        xml->setAttribute("octaves", pluginModel.transposeOctaves);
+        auto paramState = parameters.copyState();
+        std::unique_ptr<juce::XmlElement> xml(paramState.createXml());
         copyXmlToBinary(*xml, destData);
     }
 
@@ -156,12 +175,13 @@ public:
         if (auto xmlState = getXmlFromBinary(data, size))
         {
             state = ValueTree::fromXml(*xmlState);
-            if (xmlState->hasTagName("Parameters"))
+            if (xmlState->hasTagName(parameters.state.getType()))
             {
+                parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
                 pluginModel.sharp = (bool)xmlState->getBoolAttribute("sharp", true);
                 pluginModel.holdNotes = (bool)xmlState->getBoolAttribute("holdNotes", false);
                 pluginModel.transposeOctaves = (int)xmlState->getIntAttribute("octaves", 0);
-                if(editor != nullptr)
+                if (editor != nullptr)
                     editor->postCommandMessage(1);
             }
         }
@@ -174,17 +194,18 @@ private:
     public:
         explicit Editor (GrandStaffMIDIVisualizerProcessor& ownerIn)
             : AudioProcessorEditor (ownerIn),
-              owner (ownerIn), mainComponent(&ownerIn.pluginModel)
+            owner (ownerIn), 
+            mainComponent(&ownerIn.pluginModel)
         {
             setResizable (true, true);
-            lastUIWidth .referTo (owner.state.getChildWithName ("uiState").getPropertyAsValue ("width",  nullptr));
-            lastUIHeight.referTo (owner.state.getChildWithName ("uiState").getPropertyAsValue ("height", nullptr));
-            setSize (lastUIWidth.getValue(), lastUIHeight.getValue());
+            lastUIWidth.referTo(owner.state.getChildWithName("uiState").getPropertyAsValue("width", nullptr));
+            lastUIHeight.referTo(owner.state.getChildWithName("uiState").getPropertyAsValue("height", nullptr));
+            setSize(lastUIWidth.getValue(), lastUIHeight.getValue());
 
-            lastUIWidth. addListener (this);
-            lastUIHeight.addListener (this);
+            lastUIWidth.addListener(this);
+            lastUIHeight.addListener(this);
 
-            addAndMakeVisible(mainComponent);            
+            addAndMakeVisible(mainComponent);
         }
 
         ~Editor()
@@ -194,7 +215,7 @@ private:
 
         void paint (Graphics& g) override
         {
-            g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
+            g.fillAll (Colours::white);
         }
 
         void resized() override
@@ -209,6 +230,11 @@ private:
         void handleCommandMessage(int commandId)
         {
             repaint();
+        }
+
+        void onParametersChanged()
+        {
+            mainComponent.onParametersChanged();
         }
     private:
         void valueChanged (Value&) override
@@ -239,10 +265,11 @@ private:
 
     ValueTree state { "state" };
 
-
-    juce::AudioParameterBool* isSharp;
-    juce::AudioParameterBool* isHoldNotes;
-    juce::AudioParameterInt* octaves;
+    juce::AudioProcessorValueTreeState parameters;
+    std::atomic<float>* sharpParameter = nullptr;
+    std::atomic<float>* holdNotesParameter = nullptr;
+    std::atomic<float>* octavesParameter = nullptr;
+    PluginModel pluginModel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GrandStaffMIDIVisualizerProcessor)
 };
