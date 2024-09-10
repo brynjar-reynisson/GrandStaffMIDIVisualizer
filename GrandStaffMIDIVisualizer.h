@@ -89,9 +89,18 @@ public:
         sharpParameter = parameters.getRawParameterValue("sharp");
         holdNotesParameter = parameters.getRawParameterValue("holdNotes");
         octavesParameter = parameters.getRawParameterValue("octaves");
+
+        pluginModel.onChange = [&] { pluginModelChanged(); };
     }
 
     ~GrandStaffMIDIVisualizerProcessor() override {}
+
+    void pluginModelChanged()
+    {
+        *sharpParameter = pluginModel.sharp;
+        *holdNotesParameter = pluginModel.holdNotes;
+        *octavesParameter = pluginModel.transposeOctaves;
+    }
 
     void processBlock (AudioBuffer<float>& audio,  MidiBuffer& midi) override 
     {

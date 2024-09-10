@@ -33,6 +33,8 @@ public:
     int transposeOctaves = 0;
     bool sharp = true;
     bool holdNotes = false;
+
+    std::function<void()> onChange;
 };
 //==============================================================================
 class Chords

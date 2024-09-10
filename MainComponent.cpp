@@ -25,10 +25,17 @@
 #include <cmath>
 #include <set>
 
+static const Font getCustomFont()
+{
+    static auto typeface = Typeface::createSystemTypefaceFor(BinaryData::InconsolataBold_ttf, BinaryData::InconsolataBold_ttfSize);
+    return Font(typeface);
+}
+
 void MainComponent::init(PluginModel* model)
 {
     this->pluginModel = model;
-    chordsLabel.setFont(juce::Font(16.0f, juce::Font::bold));
+    chordsLabel.setFont(getCustomFont());
+    
     chordsLabel.setText("", NotificationType::dontSendNotification);
     chordsLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     chordsLabel.setJustificationType(juce::Justification::left);
@@ -147,6 +154,7 @@ void MainComponent::buttonClicked(juce::Button* button)
             octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
         }
     }
+    NullCheckedInvocation::invoke(pluginModel->onChange);
 
     repaint();
 }
@@ -180,11 +188,12 @@ void MainComponent::paint(Graphics& g)
             midiNotes.insert(i);
     }
 
-        /*
+     /*
         std::set<int> midiNotes{
-        48, 51, 55, 58, 62
+        49, 52, 56, 59, 63
     };
     */
+    
 
 
     chordsLabel.setText(Chords::name(midiNotes, pluginModel->sharp, false), NotificationType::dontSendNotification);
