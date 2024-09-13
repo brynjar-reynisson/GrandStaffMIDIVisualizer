@@ -77,6 +77,10 @@ void MainComponent::init(PluginModel* model)
     rightArrowButton.setColour(TextButton::buttonColourId, Colours::white);
     rightArrowButton.setTooltip("Octave up");
 
+    chordPlacementButton.addListener(this);
+    chordPlacementButton.setColour(TextButton::textColourOffId, Colours::black);
+    chordPlacementButton.setColour(TextButton::buttonColourId, Colours::white);
+
     onParametersChanged();
 
     addAndMakeVisible(chordsLabel);
@@ -86,6 +90,7 @@ void MainComponent::init(PluginModel* model)
     addAndMakeVisible(leftArrowButton);
     addAndMakeVisible(octaveLabel);
     addAndMakeVisible(rightArrowButton);
+    addAndMakeVisible(chordPlacementButton);
 }
 
 void MainComponent::onParametersChanged()
@@ -94,16 +99,26 @@ void MainComponent::onParametersChanged()
     flatButton.setToggleState(!pluginModel->sharp, false);
     holdNoteButton.setToggleState(pluginModel->holdNotes, false);
     octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
+    updateChordPlacementButton();
+}
+
+void MainComponent::updateChordPlacementButton()
+{
+    if (pluginModel->chordsOnRight)
+    {
+        chordPlacementButton.setButtonText("V");
+        chordPlacementButton.setTooltip("Display chords in bottom left corner");
+    }
+    else
+    {
+        chordPlacementButton.setButtonText(">");
+        chordPlacementButton.setTooltip("Display chords to the right of the Grand Staff");
+    }
 }
 
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
-
-    float labelHeight = bounds.getHeight() >= 200 ? 20 : bounds.getHeight() / 10;
-    float labelFontHeight = labelHeight;
-    chordsLabel.setFont(juce::Font("Consolas", labelFontHeight, juce::Font::bold));
-    chordsLabel.setBounds(bounds.getX() + 3, bounds.getBottom() - labelHeight - 3, bounds.getRight() - 3, labelHeight);
 
     int size = bounds.getHeight() / 20;
     int buttonSpace = size / 10;
@@ -114,6 +129,13 @@ void MainComponent::resized()
     leftArrowButton.setBounds(bounds.getWidth() - size * 4, 0, size, size);
     octaveLabel.setBounds(bounds.getWidth() - size * 3, 0, size * 2, size);
     rightArrowButton.setBounds(bounds.getWidth() - size, 0, size, size);
+
+    chordPlacementButton.setBounds(buttonSpace, bounds.getHeight() - size * 2 - buttonSpace, size * 2, size * 2);
+
+    float labelHeight = size * 2;//bounds.getHeight() >= 200 ? 20 : bounds.getHeight() / 10;
+    float labelFontHeight = labelHeight;
+    chordsLabel.setFont(juce::Font("Consolas", labelFontHeight, juce::Font::bold));
+    chordsLabel.setBounds(size *2 + buttonSpace * 4, bounds.getBottom() - labelHeight - buttonSpace, bounds.getWidth() / 2, labelHeight);
 }
 
 void MainComponent::buttonClicked(juce::Button* button)
@@ -154,8 +176,12 @@ void MainComponent::buttonClicked(juce::Button* button)
             octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
         }
     }
-    NullCheckedInvocation::invoke(pluginModel->onChange);
+    else if (button == &chordPlacementButton)
+    {
+        pluginModel->chordsOnRight = !pluginModel->chordsOnRight;
+    }
 
+    NullCheckedInvocation::invoke(pluginModel->onChange);
     repaint();
 }
 
@@ -181,22 +207,26 @@ void MainComponent::paint(Graphics& g)
     drawStaff(g, staffCalculator);
     g.setColour(juce::Colours::black);
 
+    
     std::set<int> midiNotes;
     for (int i = 0; i < 127; i++)
     {
         if (pluginModel->midiNotes[i] == 1)
             midiNotes.insert(i);
     }
-
-     /*
-        std::set<int> midiNotes{
+    
+    /*
+    std::set<int> midiNotes{
         49, 52, 56, 59, 63
     };
     */
+
+    String chordName = Chords::name(midiNotes, pluginModel->sharp, false);
     
-
-
-    chordsLabel.setText(Chords::name(midiNotes, pluginModel->sharp, false), NotificationType::dontSendNotification);
+    if (!pluginModel->chordsOnRight)
+        chordsLabel.setText(chordName, NotificationType::dontSendNotification);
+    else
+        chordsLabel.setText("", NotificationType::dontSendNotification);
 
     //Find out where to place the notes
     NoteDrawInfo noteDrawInfos[127];
@@ -305,9 +335,21 @@ void MainComponent::paint(Graphics& g)
     float baseNoteX = staffCalculator.x + (staffCalculator.staffHeight / 2) + (staffCalculator.staffHeight / 4) + staffCalculator.noteWidth;
     int lineX = baseNoteX - staffCalculator.lineThickness;
     float accentX = baseNoteX - staffCalculator.noteWidth;
+    bool firstNote = true;
 
     for (int midiNote : midiNotes)
     {
+        if (firstNote && pluginModel->chordsOnRight)
+        {
+            float chordY = noteDrawInfos[midiNote].y - staffCalculator.noteHeight / 2;
+            float chordX = staffCalculator.staffHeight + staffCalculator.staffHeight / 3;
+            g.setFont(getCustomFont());
+            g.setFont(getLocalBounds().getHeight() / 5);
+            //g.setFont(staffCalculator.noteHeight * 2);
+            g.drawText(chordName, chordX, chordY, staffCalculator.noteWidth * 10, staffCalculator.noteHeight * 2, Justification::centredLeft);
+            firstNote = false;
+        }
+
         float noteX = baseNoteX;
         float accentX = baseNoteX - (staffCalculator.noteWidth) - (noteDrawInfos[midiNote].accentIndent * staffCalculator.noteWidth * 0.75);
         if (noteDrawInfos[midiNote].selectedToMoveRight && !noteDrawInfos[midiNote].dontMoveRight)

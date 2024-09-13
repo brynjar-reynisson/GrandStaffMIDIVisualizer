@@ -33,6 +33,7 @@ public:
     int transposeOctaves = 0;
     bool sharp = true;
     bool holdNotes = false;
+    bool chordsOnRight = false;
 
     std::function<void()> onChange;
 };
@@ -126,6 +127,7 @@ public:
     void resized() override;
     void buttonClicked(juce::Button* button) override;
     void onParametersChanged();
+    void updateChordPlacementButton();
 
 private:
     void drawStaff(Graphics& g, StaffCalculator& staffCalculator);
@@ -143,6 +145,7 @@ private:
     TextButton leftArrowButton;
     Label octaveLabel;
     TextButton rightArrowButton;
+    TextButton chordPlacementButton;
     PluginModel* pluginModel;
 
     TooltipWindow tooltipWindow{ this }; // instance required for ToolTips to work
