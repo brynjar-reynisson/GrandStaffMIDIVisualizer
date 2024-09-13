@@ -77,8 +77,11 @@ public:
                                                             "Octaves",     // parameter name
                                                             -3,
                                                             3,
-                                                            0)              // default value
-            })        
+                                                            0),              // default value
+                std::make_unique<juce::AudioParameterBool>("chordsOnRight",            // parameterID
+                                                             "Display chords on right side",            // parameter name
+                                                             false),             // default value
+            })
     {
         state.addChild({ "uiState", { { "width",  600 }, { "height", 300 } }, {} }, -1, nullptr);
 
@@ -89,6 +92,7 @@ public:
         sharpParameter = parameters.getRawParameterValue("sharp");
         holdNotesParameter = parameters.getRawParameterValue("holdNotes");
         octavesParameter = parameters.getRawParameterValue("octaves");
+        chordPlacementParameter = parameters.getRawParameterValue("chordsOnRight");
 
         pluginModel.onChange = [&] { pluginModelChanged(); };
     }
@@ -100,6 +104,7 @@ public:
         *sharpParameter = pluginModel.sharp;
         *holdNotesParameter = pluginModel.holdNotes;
         *octavesParameter = pluginModel.transposeOctaves;
+        *chordPlacementParameter = pluginModel.chordsOnRight;
     }
 
     void processBlock (AudioBuffer<float>& audio,  MidiBuffer& midi) override 
@@ -107,6 +112,7 @@ public:
         bool hasParamChanges = false;
         bool newSharpValue = *sharpParameter > 0.5f ? true : false;
         bool newHoldNotesValue = *holdNotesParameter > 0.5 ? true : false;
+        bool newChordPlacementValue = *chordPlacementParameter > 0.5 ? true : false;
         if (newSharpValue != pluginModel.sharp)
         {
             hasParamChanges = true;
@@ -121,6 +127,11 @@ public:
         {
             hasParamChanges = true;
             pluginModel.transposeOctaves = (int)*octavesParameter;
+        }
+        if (newChordPlacementValue != pluginModel.chordsOnRight)
+        {
+            hasParamChanges = true;
+            pluginModel.chordsOnRight = newChordPlacementValue;
         }
 
         audio.clear();
@@ -190,6 +201,7 @@ public:
                 pluginModel.sharp = (bool)xmlState->getBoolAttribute("sharp", true);
                 pluginModel.holdNotes = (bool)xmlState->getBoolAttribute("holdNotes", false);
                 pluginModel.transposeOctaves = (int)xmlState->getIntAttribute("octaves", 0);
+                pluginModel.chordsOnRight = (bool)xmlState->getBoolAttribute("chordsOnRight", false);
                 if (editor != nullptr)
                     editor->postCommandMessage(1);
             }
@@ -278,6 +290,7 @@ private:
     std::atomic<float>* sharpParameter = nullptr;
     std::atomic<float>* holdNotesParameter = nullptr;
     std::atomic<float>* octavesParameter = nullptr;
+    std::atomic<float>* chordPlacementParameter = nullptr;
     PluginModel pluginModel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GrandStaffMIDIVisualizerProcessor)
