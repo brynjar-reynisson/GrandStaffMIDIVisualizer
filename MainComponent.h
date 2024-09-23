@@ -24,40 +24,52 @@
 #pragma once
 
 #include <JuceHeader.h>
-
 //==============================================================================
-struct Key
+enum ChordType
 {
+    None,
+    Major,
+    Sus,
+    Aug,
+    Tritonic,
+    Minor,
+    Dim
+};
+//==============================================================================
+struct ChordPattern
+{
+    ChordPattern(String pattern = "", String name = "", ChordType chordType = None)
+    {
+        this->pattern = pattern;
+        this->name = name;
+        this->chordType = chordType;
+    }
+    String pattern;
     String name;
-    String notes[7];
-};
-//==============================================================================
-class Keys
-{
-
+    ChordType chordType;
 };
 
-//==============================================================================
-class PluginModel
-{
-public:
-    int midiNotes[127];
-    int transposeOctaves = 0;
-    bool sharp = true;
-    bool holdNotes = false;
-    bool chordsOnRight = false;
+static ChordPattern nullPattern = ChordPattern();
 
-    std::function<void()> onChange;
-};
 //==============================================================================
-class Chords
+struct Chord
 {
-public:
-    /*
-    * The chord recognition algorithm is based on the Chordback JSFX script written by Paul Heams
-    * He can be contacted on X (Twitter) as @17BitRetro
-    */
-    static String name(std::set<int>& midiNotes, bool sharp, bool includeNoteNames);
+    Chord(ChordPattern pattern = nullPattern, String baseNote = "", String bassNote = "");
+    String name();
+
+    ChordPattern pattern;
+    String baseNote;
+    String bassNote;
+
+    bool isMajor3rd() const
+    {
+        return pattern.chordType == Major || pattern.chordType == Sus || pattern.chordType == Aug;
+    };
+
+    bool isMinor3rd() const
+    {
+        return pattern.chordType == Minor || pattern.chordType == Dim;
+    };
 };
 //==============================================================================
 struct NoteDrawInfo
@@ -66,9 +78,11 @@ struct NoteDrawInfo
     float x = -500;
     bool sharp = false;
     bool flat = false;
+    bool natural = false;
     int accentIndent = 0;
     int lineCount = 0;
     float linePositions[5];
+    int midiNote = -1;
     int anchorNote = -1; //where the note will be drawn, e.g. F# on F, Ab on A
     bool dontMoveRight = false;
     bool selectedToMoveRight = false;
@@ -76,11 +90,90 @@ struct NoteDrawInfo
     bool doubleNote = false; //true if two notes have the same anchorNote
 };
 //==============================================================================
+struct Key
+{
+    String name;
+    std::list<String> notes;
+    int numSharps = 0;
+    int numFlats = 0;
+    bool hasNote(String& noteName);
+    String selectChordBaseNoteName(int midiNote, ChordType chordType);
+
+    inline static const String SHARP = "Sharp";
+    inline static const String FLAT = "Flat";
+};
+//==============================================================================
+class Keys
+{
+public:
+    Keys();
+    std::vector<String> getKeyNames();
+    int getKeyIndex(String name);
+    Key getKey(String name);
+    String selectChordName(String keyName, String sharpChordName, String flatChordName);
+    void applyAnchorNoteAndAccents(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo);
+
+private:
+    void addKey(String name, std::list<String>& notes, int numSharps, int numFlats);
+    void applyAnchorNoteAndAccentsUsingChordKey(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo);
+    std::map<String, Key> keys;
+};
+//==============================================================================
+class Chords
+{
+public:
+    Chords();
+
+    /*
+    * The chord recognition algorithm is based on the Chordback JSFX script written by Paul Heams
+    * He can be contacted on X (Twitter) as @17BitRetro
+    */
+    void name(std::set<int>& midiNotes, Key& key, Chord& chord);
+
+private:
+    std::map<String, ChordPattern> patterns;
+};
+//==============================================================================
+class PluginModel
+{
+public:
+    int midiNotes[127];
+    int transposeOctaves = 0;
+    int keyId = 0;
+    bool holdNotes = false;
+    bool chordsOnRight = false;
+    bool hasParamChanges = false;
+    bool hasUIChanges = false;
+
+    std::function<void()> onChange;
+};
+
+static bool chordHasSuperPower(Chord& chord)
+{
+    if (chord.isMajor3rd() && (chord.baseNote == "Bb" || chord.baseNote == "Eb" || chord.baseNote == "C" || chord.baseNote == "D" ||
+        chord.baseNote == "E" || chord.baseNote == "F" || chord.baseNote == "G" || chord.baseNote == "A" || chord.baseNote == "B"))
+        return true;
+    else if (chord.isMinor3rd() && (chord.baseNote == "C" || chord.baseNote == "D" || chord.baseNote == "E" || chord.baseNote == "G" ||
+        chord.baseNote == "A" || chord.baseNote == "B"))
+        return true;
+    return false;
+}
+
+static bool isChordSharp(Chord& chord)
+{
+    if (chord.isMajor3rd() && (chord.baseNote == "Eb" || chord.baseNote == "Bb" || chord.baseNote == "F" || chord.baseNote == "C"))
+        return false;
+    else if (chord.isMinor3rd() && (chord.baseNote == "C" || chord.baseNote == "G" || chord.baseNote == "D" || chord.baseNote == "A"))
+        return false;
+    return true;
+}
+
+//==============================================================================
 class StaffCalculator
 {
 public:
     StaffCalculator(Rectangle<int> bounds);
-    void noteYPlacement(int midiNote, NoteDrawInfo& noteDrawInfo, bool sharp=false, int transpose=0);
+    void noteYPlacement(int midiNote, NoteDrawInfo& noteDrawInfo, bool sharp=false, bool applySharpFlat=true, int transpose=0);
     
     float noteMultiplyConstant;
     float noteWidth;
@@ -123,14 +216,20 @@ public:
 
     float sharpFontSize;
     float flatFontSize;
+
+    float sharpsX[14];//two of each - F# C# G# D# A# E# B#
+    float sharpsY[14];
+    float flatsX[14];//Bb Eb Ab Db Gb Cb Fb
+    float flatsY[14];
+
 private:
 };
 //==============================================================================
 class MainComponent final : public Component, public Button::Listener {
 public:
     MainComponent(PluginModel* model) :
-        sharpButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground),
-        flatButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground),
+        //sharpButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground),
+        //flatButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground),
         holdNoteButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
     {
         init(model);
@@ -142,23 +241,33 @@ public:
     void updateChordPlacementButton();
 
 private:
-    void drawStaff(Graphics& g, StaffCalculator& staffCalculator);
     void init(PluginModel* model);
+    void keyMenuChanged();
+    //void noteYPlacement(StaffCalculator& staffCalculator, String& chordName, NoteDrawInfo& noteDrawInfo, int midiNote);
+    void drawStaff(Graphics& g, StaffCalculator& staffCalculator);
+    void drawKeySignature(Graphics& g, StaffCalculator& staffCalculator);
+    void drawSharps(Graphics& g, StaffCalculator& staffCalculator, int numSharps);
+    void drawFlats(Graphics& g, StaffCalculator& staffCalculator, int numFlats);
 
-    const std::unique_ptr<Drawable> staffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_DM_03_svg, BinaryData::Grand_staff_DM_03_svgSize);
+    //const std::unique_ptr<Drawable> staffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_DM_03_svg, BinaryData::Grand_staff_DM_03_svgSize);
+    const std::unique_ptr<Drawable> staffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_02_svg, BinaryData::Grand_staff_02_svgSize);
     const std::unique_ptr<Drawable> noteSvg = Drawable::createFromImageData(BinaryData::Whole_note_svg, BinaryData::Whole_note_svgSize);
     const std::unique_ptr<Drawable> sharpSvg = Drawable::createFromImageData(BinaryData::Sharp_svg, BinaryData::Sharp_svgSize);
     const std::unique_ptr<Drawable> flatSvg = Drawable::createFromImageData(BinaryData::Flat_svg, BinaryData::Flat_svgSize);
     const std::unique_ptr<Drawable> naturalSvg = Drawable::createFromImageData(BinaryData::Natural_svg, BinaryData::Natural_svgSize);
     Label chordsLabel;
-    DrawableButton sharpButton;
-    DrawableButton flatButton;
+    //DrawableButton sharpButton;
+    //DrawableButton flatButton;
     DrawableButton holdNoteButton;
     TextButton leftArrowButton;
     Label octaveLabel;
     TextButton rightArrowButton;
     TextButton chordPlacementButton;
+    ComboBox keyMenu;
+
     PluginModel* pluginModel;
+    Keys keys;
+    Chords chords;
 
     TooltipWindow tooltipWindow{ this }; // instance required for ToolTips to work
 };

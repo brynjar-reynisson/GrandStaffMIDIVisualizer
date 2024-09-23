@@ -40,20 +40,6 @@ void MainComponent::init(PluginModel* model)
     chordsLabel.setColour(juce::Label::textColourId, juce::Colours::black);
     chordsLabel.setJustificationType(juce::Justification::left);
 
-    sharpButton.addListener(this);
-    sharpButton.setImages(sharpSvg.get());
-    sharpButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
-    sharpButton.setColour(TextButton::buttonOnColourId, Colours::white);
-    sharpButton.setToggleable(true);
-    sharpButton.setTooltip(String("Sharp notation"));
-
-    flatButton.addListener(this);
-    flatButton.setImages(flatSvg.get());
-    flatButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
-    flatButton.setColour(TextButton::buttonOnColourId, Colours::white);
-    flatButton.setToggleable(true);
-    flatButton.setTooltip("Flat notation");
-
     holdNoteButton.addListener(this);
     holdNoteButton.setImages(noteSvg.get());
     holdNoteButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
@@ -61,6 +47,14 @@ void MainComponent::init(PluginModel* model)
     holdNoteButton.setToggleable(true);
     holdNoteButton.setTooltip("Hold notes");
 
+    int i = 1;
+    for (String key : keys.getKeyNames())
+    {
+        keyMenu.addItem(key, i++);
+    }
+    keyMenu.onChange = [this] { keyMenuChanged(); };
+    keyMenu.setSelectedItemIndex(1);
+   
     leftArrowButton.addListener(this);
     leftArrowButton.setButtonText("<");
     leftArrowButton.setColour(TextButton::textColourOffId, Colours::black);
@@ -84,9 +78,10 @@ void MainComponent::init(PluginModel* model)
     onParametersChanged();
 
     addAndMakeVisible(chordsLabel);
-    addAndMakeVisible(sharpButton);
-    addAndMakeVisible(flatButton);
+    //addAndMakeVisible(sharpButton);
+    //addAndMakeVisible(flatButton);
     addAndMakeVisible(holdNoteButton);
+    addAndMakeVisible(keyMenu);
     addAndMakeVisible(leftArrowButton);
     addAndMakeVisible(octaveLabel);
     addAndMakeVisible(rightArrowButton);
@@ -95,11 +90,11 @@ void MainComponent::init(PluginModel* model)
 
 void MainComponent::onParametersChanged()
 {
-    sharpButton.setToggleState(pluginModel->sharp, false);
-    flatButton.setToggleState(!pluginModel->sharp, false);
+    keyMenu.setSelectedId(pluginModel->keyId + 1, false);
     holdNoteButton.setToggleState(pluginModel->holdNotes, false);
     octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
     updateChordPlacementButton();
+    pluginModel->hasParamChanges = false;
 }
 
 void MainComponent::updateChordPlacementButton()
@@ -122,37 +117,24 @@ void MainComponent::resized()
 
     int size = bounds.getHeight() / 20;
     int buttonSpace = size / 10;
-    sharpButton.setBounds(0, 0, size, size);
-    flatButton.setBounds(size + buttonSpace, 0, size, size);
-    holdNoteButton.setBounds(size * 2 + buttonSpace * 2, 0, size, size);
+    keyMenu.setBounds(buttonSpace, 0, size * 4, size);
 
+    holdNoteButton.setBounds(bounds.getWidth() - size * 5 - buttonSpace, 0, size, size);
     leftArrowButton.setBounds(bounds.getWidth() - size * 4, 0, size, size);
     octaveLabel.setBounds(bounds.getWidth() - size * 3, 0, size * 2, size);
     rightArrowButton.setBounds(bounds.getWidth() - size, 0, size, size);
 
-    chordPlacementButton.setBounds(buttonSpace, bounds.getHeight() - size * 2 - buttonSpace, size * 2, size * 2);
+    chordPlacementButton.setBounds(buttonSpace, bounds.getHeight() - size - buttonSpace, size * 1.1, size);
 
     float labelHeight = size * 2;//bounds.getHeight() >= 200 ? 20 : bounds.getHeight() / 10;
     float labelFontHeight = labelHeight;
     chordsLabel.setFont(juce::Font("Consolas", labelFontHeight, juce::Font::bold));
-    chordsLabel.setBounds(size *2 + buttonSpace * 4, bounds.getBottom() - labelHeight - buttonSpace, bounds.getWidth() / 2, labelHeight);
+    chordsLabel.setBounds(size * 2 + buttonSpace * 5, bounds.getBottom() - labelHeight - buttonSpace, bounds.getWidth() / 2, labelHeight);
 }
 
 void MainComponent::buttonClicked(juce::Button* button)
 {
-    if (button == &sharpButton)
-    {
-        pluginModel->sharp = true;
-        sharpButton.setToggleState(true, false);
-        flatButton.setToggleState(false, false);
-    }
-    else if (button == &flatButton)
-    {
-        pluginModel->sharp = false;
-        sharpButton.setToggleState(false, false);
-        flatButton.setToggleState(true, false);
-    }
-    else if (button == &holdNoteButton)
+    if (button == &holdNoteButton)
     {
         bool curMode = holdNoteButton.getToggleState();
         holdNoteButton.setToggleState(!curMode, false);
@@ -200,13 +182,16 @@ static std::set<int> conflictLosers = {
 
 void MainComponent::paint(Graphics& g)
 {
-    onParametersChanged();
+    if (pluginModel->hasParamChanges)
+        onParametersChanged();
 
     g.fillAll(juce::Colours::white);
     StaffCalculator staffCalculator(getLocalBounds());
     drawStaff(g, staffCalculator);
     g.setColour(juce::Colours::black);
 
+    drawKeySignature(g, staffCalculator);
+    
     
     std::set<int> midiNotes;
     for (int i = 0; i < 127; i++)
@@ -215,16 +200,18 @@ void MainComponent::paint(Graphics& g)
             midiNotes.insert(i);
     }
     
+    
     /*
     std::set<int> midiNotes{
-        49, 52, 56, 59, 63
+        49, 53, 56
     };
     */
 
-    String chordName = Chords::name(midiNotes, pluginModel->sharp, false);
+    Chord chord;
+    chords.name(midiNotes, keys.getKey(keyMenu.getText()), chord);
     
     if (!pluginModel->chordsOnRight)
-        chordsLabel.setText(chordName, NotificationType::dontSendNotification);
+        chordsLabel.setText(chord.name(), NotificationType::dontSendNotification);
     else
         chordsLabel.setText("", NotificationType::dontSendNotification);
 
@@ -234,7 +221,18 @@ void MainComponent::paint(Graphics& g)
     for (int midiNote : midiNotes)
     {
         noteDrawInfos[midiNote] = NoteDrawInfo();
-        staffCalculator.noteYPlacement(midiNote, noteDrawInfos[midiNote], pluginModel->sharp, 12 * pluginModel->transposeOctaves);
+        if (keyMenu.getSelectedId() < 3)
+        {
+            bool sharp = keyMenu.getText() == Key::SHARP ? true : false;
+            staffCalculator.noteYPlacement(midiNote, noteDrawInfos[midiNote], sharp, true, 12 * pluginModel->transposeOctaves);
+        }
+        else
+        {
+            keys.applyAnchorNoteAndAccents(midiNote, keys.getKey(keyMenu.getText()), chord, noteDrawInfos[midiNote]);
+            staffCalculator.noteYPlacement(noteDrawInfos[midiNote].anchorNote, noteDrawInfos[midiNote], false, false, 12 * pluginModel->transposeOctaves);
+        }
+            //noteYPlacement(staffCalculator, chord.name(), noteDrawInfos[midiNote], midiNote);
+
         for (int dontMove : dontMoveRight)
         {
             if (dontMove == noteDrawInfos[midiNote].anchorNote)
@@ -299,12 +297,14 @@ void MainComponent::paint(Graphics& g)
     float lastY = -1;
     int lastAccentIndent = 0;
     std::set<int>::reverse_iterator rit;
-    float diffMultiplier = pluginModel->sharp ? 3 : 2;//sharps need more space than flats
+    //float sharpDiffMultiplier = 3;
+    //float flatDiffMultiplier = 2;
+    //float diffMultiplier = keyMenu.getText() == Key::SHARP ? 3 : 2;//sharps need more space than flats
     for (rit = midiNotes.rbegin(); rit != midiNotes.rend(); rit++)
     {
         // *rit to access value
         int midiNote = *rit;
-        if (!noteDrawInfos[midiNote].sharp && !noteDrawInfos[midiNote].flat)
+        if (!noteDrawInfos[midiNote].sharp && !noteDrawInfos[midiNote].flat && !noteDrawInfos[midiNote].natural)
             continue;
 
         //first note always indent 0, and update lastY
@@ -314,6 +314,7 @@ void MainComponent::paint(Graphics& g)
         }
 
         float yDiff = noteDrawInfos[midiNote].y - lastY;
+        float diffMultiplier = noteDrawInfos[midiNote].sharp ? 3 : 2;
         if (yDiff < staffCalculator.noteHeight * diffMultiplier)
         {
             //if this is close to the indent 0 y, change indent, and don't update lastY
@@ -332,7 +333,7 @@ void MainComponent::paint(Graphics& g)
     }
     //Done finding out where to put the notes
 
-    float baseNoteX = staffCalculator.x + (staffCalculator.staffHeight / 2) + (staffCalculator.staffHeight / 4) + staffCalculator.noteWidth;
+    float baseNoteX = staffCalculator.x + (staffCalculator.staffHeight / 2) + (staffCalculator.staffHeight / 4) + staffCalculator.noteWidth * 5;
     int lineX = baseNoteX - staffCalculator.lineThickness;
     float accentX = baseNoteX - staffCalculator.noteWidth;
     bool firstNote = true;
@@ -342,11 +343,10 @@ void MainComponent::paint(Graphics& g)
         if (firstNote && pluginModel->chordsOnRight)
         {
             float chordY = noteDrawInfos[midiNote].y - staffCalculator.noteHeight / 2;
-            float chordX = staffCalculator.staffHeight + staffCalculator.staffHeight / 3;
+            float chordX = staffCalculator.staffHeight * 1.66;
             g.setFont(getCustomFont());
             g.setFont(getLocalBounds().getHeight() / 5);
-            //g.setFont(staffCalculator.noteHeight * 2);
-            g.drawText(chordName, chordX, chordY, staffCalculator.noteWidth * 10, staffCalculator.noteHeight * 2, Justification::centredLeft);
+            g.drawText(chord.name(), chordX, chordY, staffCalculator.noteWidth * 10, staffCalculator.noteHeight * 2, Justification::centredLeft);
             firstNote = false;
         }
 
@@ -370,301 +370,74 @@ void MainComponent::paint(Graphics& g)
         }
         if (noteDrawInfos[midiNote].sharp)
         {
-            sharpSvg->drawWithin(g, Rectangle<float>(accentX, noteDrawInfos[midiNote].y - staffCalculator.noteHeight*0.75, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5), juce::RectanglePlacement::Flags::xLeft, 1.0);
+            sharpSvg->drawWithin(g, Rectangle<float>(accentX, noteDrawInfos[midiNote].y - staffCalculator.noteHeight * 0.75, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5f), juce::RectanglePlacement::Flags::xLeft, 1.0);
         }
         else if (noteDrawInfos[midiNote].flat)
         {
-            flatSvg->drawWithin(g, Rectangle<float>(accentX, noteDrawInfos[midiNote].y - staffCalculator.noteHeight, staffCalculator.noteWidth, staffCalculator.noteHeight * 2), juce::RectanglePlacement::Flags::xLeft, 1.0);
+            flatSvg->drawWithin(g, Rectangle<float>(accentX, noteDrawInfos[midiNote].y - staffCalculator.noteHeight * 1.25, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5f), juce::RectanglePlacement::Flags::xLeft, 1.0);
+        }
+        else if (noteDrawInfos[midiNote].natural)
+        {
+            naturalSvg->drawWithin(g, Rectangle<float>(accentX, noteDrawInfos[midiNote].y - staffCalculator.noteHeight * 0.75, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5f), juce::RectanglePlacement::Flags::xLeft, 1.0);
         }
     }
 }
 
 
-StaffCalculator::StaffCalculator(Rectangle<int> bounds)
-{
-    noteMultiplyConstant = 0.97;
-
-    x = bounds.getX();
-    y = bounds.getY();
-    height = bounds.getHeight();
-
-    staffYIncrement = y + (height * 0.2);
-    staffHeight = height * 0.5;
-    width = bounds.getWidth() >= staffHeight ? bounds.getWidth() : staffHeight;
-
-    lineThickness = staffHeight / 100;
-    noteWidth = height / 20 + lineThickness * 2;
-    noteHeight = height / 30 + lineThickness / 2;
-
-    g1Anchor = height - height / 3 + noteHeight * 0.5 - lineThickness * 1;
-    a2Anchor = height - height / 2 + noteHeight * 0.5;
-    f4Anchor = y + staffYIncrement + (1 * noteHeight) - lineThickness * 1.5;
-    e3Anchor = f4Anchor + (4 * noteHeight) - lineThickness;
-
-    g5 = f4Anchor - (4 * noteHeight * noteMultiplyConstant);
-    e5 = f4Anchor - (3 * noteHeight * noteMultiplyConstant);
-    c5 = f4Anchor - (2 * noteHeight * noteMultiplyConstant);
-    a4 = f4Anchor - (1 * noteHeight * noteMultiplyConstant);
-
-    c3 = e3Anchor + (1 * noteHeight * noteMultiplyConstant);
-
-    e1 = g1Anchor + (1 * noteHeight);
-    c1 = g1Anchor + (2 * noteHeight);
-    a0 = g1Anchor + (3 * noteHeight);
-    f0 = g1Anchor + (4 * noteHeight);
-
-    gLine1 = a4 + (0.5 * noteHeight);
-    gLine2 = c5 + (0.5 * noteHeight);
-    gLine3 = e5 + (0.5 * noteHeight);
-    gLine4 = g5 + (0.5 * noteHeight);
-    c3Line = c3 + (0.5 * noteHeight);
-    fLine1 = e1 + (0.5 * noteHeight);
-    fLine2 = c1 + (0.5 * noteHeight);
-    fLine3 = a0 + (0.5 * noteHeight);
-    fLine4 = f0 + (0.5 * noteHeight);
-
-    sharpFontSize = noteHeight * 1.5;
-    flatFontSize = noteHeight * 1.5;
-}
-
-static int accentedNotes[] = {
-    18, 20, 22,
-    25, 27, 30, 32, 34,
-    37, 39, 42, 44, 46,
-    49, 51, 54, 56, 58,
-    61, 63, 66, 68, 70,
-    73, 75, 78, 80, 82
-};
-
-void StaffCalculator::noteYPlacement(int midiNote, NoteDrawInfo& noteDrawInfo, bool sharp, int transpose)
-{
-    float y = -500;
-    int drawnNote = midiNote + transpose;
-
-    for (int note : accentedNotes)
-    {
-        if (drawnNote == note)
-        {
-            int drawnAccentedNote = sharp ? drawnNote - 1 : drawnNote + 1;
-            noteYPlacement(drawnAccentedNote, noteDrawInfo, sharp, 0);
-            if (sharp)
-                noteDrawInfo.sharp = true;
-            else
-                noteDrawInfo.flat = true;
-            return;
-        }
-    }
-
-    float noteMultiplyConstant = 0.97;
-    if (drawnNote < 29)
-    {
-        //below F1
-        switch (drawnNote)
-        {
-        case 16: //E0
-            y = f0 + (0.5 * noteHeight);
-            break;
-        case 17:
-            y = f0;
-            break;
-        case 19:
-            y = a0 + (0.5 * noteHeight);
-            break;
-        case 21:
-            y = a0;
-            break;
-        case 23:
-            y = c1 + (0.5 * noteHeight);
-            break;
-        case 24: //C1
-            y = c1;
-            break;
-        case 26:
-            y = e1 + (0.5 * noteHeight);
-            break;
-        case 28: //E1
-            y = e1;
-            break;
-        case 27:
-            y = e1 - (0.5 * noteHeight);
-            break;
-        }
-        if (drawnNote < 19)
-        {
-            noteDrawInfo.lineCount = 4;
-            noteDrawInfo.linePositions[0] = fLine1;
-            noteDrawInfo.linePositions[1] = fLine2;
-            noteDrawInfo.linePositions[2] = fLine3;
-            noteDrawInfo.linePositions[3] = fLine4;
-        }
-        else if (drawnNote < 23)
-        {
-            noteDrawInfo.lineCount = 3;
-            noteDrawInfo.linePositions[0] = fLine1;
-            noteDrawInfo.linePositions[1] = fLine2;
-            noteDrawInfo.linePositions[2] = fLine3;
-        }
-        else if (drawnNote < 26)
-        {
-            noteDrawInfo.lineCount = 2;
-            noteDrawInfo.linePositions[0] = fLine1;
-            noteDrawInfo.linePositions[1] = fLine2;
-        }
-        else if (drawnNote < 29)
-        {
-            noteDrawInfo.lineCount = 1;
-            noteDrawInfo.linePositions[0] = fLine1;
-        }
-    }
-    else if (drawnNote >= 29 && drawnNote < 48)
-    {
-        //F1 to B2
-        switch (drawnNote)
-        {
-        case 29:
-            y = g1Anchor + (0.5 * noteHeight * noteMultiplyConstant);
-            break;
-        case 31:
-            y = g1Anchor;
-            break;
-        case 33:
-            y = g1Anchor - (0.5 * noteHeight * noteMultiplyConstant);
-            break;
-        case 35:
-            y = g1Anchor - (1 * noteHeight * noteMultiplyConstant);
-            break;
-        case 36: //C2
-            y = g1Anchor - (1.5 * noteHeight * noteMultiplyConstant);
-            break;
-        case 38:
-            y = g1Anchor - (2 * noteHeight * noteMultiplyConstant);
-            break;
-        case 40:
-            y = g1Anchor - (2.5 * noteHeight * noteMultiplyConstant);
-            break;
-        case 41:
-            y = g1Anchor - (3 * noteHeight * noteMultiplyConstant);
-            break;
-        case 43:
-            y = g1Anchor - (3.5 * noteHeight * noteMultiplyConstant);
-            break;
-        case 45:
-            y = g1Anchor - (4 * noteHeight * noteMultiplyConstant);
-            break;
-        case 47:
-            y = g1Anchor - (4.5 * noteHeight * noteMultiplyConstant);
-            break;
-        }
-    }
-    else if (drawnNote == 48)
-    {
-        y = c3;
-        noteDrawInfo.lineCount = 1;
-        noteDrawInfo.linePositions[0] = c3Line;
-    }
-    else if (drawnNote > 48 && drawnNote <= 65)
-    {
-        //D3 to F4
-        switch (drawnNote)
-        {
-        case 50:
-            y = e3Anchor + (0.5 * noteHeight * noteMultiplyConstant);
-            break;
-        case 52:
-            y = e3Anchor;
-            break;
-        case 53:
-            y = e3Anchor - (0.5 * noteHeight * noteMultiplyConstant);
-            break;
-        case 55:
-            y = e3Anchor - (1 * noteHeight * noteMultiplyConstant);
-            break;
-        case 57:
-            y = e3Anchor - (1.5 * noteHeight * noteMultiplyConstant);
-            break;
-        case 59:
-            y = f4Anchor + (2 * noteHeight * noteMultiplyConstant);
-            break;
-        case 60: // C4
-            y = f4Anchor + (1.5 * noteHeight * noteMultiplyConstant);
-            break;
-        case 62:
-            y = f4Anchor + (1 * noteHeight * noteMultiplyConstant);
-            break;
-        case 64:
-            y = f4Anchor + (0.5 * noteHeight * noteMultiplyConstant);
-            break;
-        case 65:
-            y = f4Anchor;
-            break;
-        }
-    }
-    else if (drawnNote > 65)
-    {
-        //G4 to A5
-        switch (drawnNote)
-        {
-        case 67:
-            y = f4Anchor - (0.5 * noteHeight);
-            break;
-        case 69:
-            y = a4;
-            break;
-        case 71:
-            y = a4 - (0.5 * noteHeight);
-            break;
-        case 72: //C5
-            y = c5;
-            break;
-        case 74:
-            y = c5 - (0.5 * noteHeight);
-            break;
-        case 76:
-            y = e5;
-            break;
-        case 77:
-            y = e5 - (0.5 * noteHeight);
-            break;
-        case 79:
-            y = g5;
-            break;
-        case 81:
-            y = g5 - (0.5 * noteHeight);
-            break;
-        }
-        if (drawnNote > 77 && drawnNote < 82)
-        {
-            noteDrawInfo.lineCount = 4;
-            noteDrawInfo.linePositions[0] = gLine1;
-            noteDrawInfo.linePositions[1] = gLine2;
-            noteDrawInfo.linePositions[2] = gLine3;
-            noteDrawInfo.linePositions[3] = gLine4;
-        }
-        else if (drawnNote > 74 && drawnNote < 78)
-        {
-            noteDrawInfo.lineCount = 3;
-            noteDrawInfo.linePositions[0] = gLine1;
-            noteDrawInfo.linePositions[1] = gLine2;
-            noteDrawInfo.linePositions[2] = gLine3;
-        }
-        else if (drawnNote > 71 && drawnNote < 75)
-        {
-            noteDrawInfo.lineCount = 2;
-            noteDrawInfo.linePositions[0] = gLine1;
-            noteDrawInfo.linePositions[1] = gLine2;
-        }
-        else if (drawnNote > 67 && drawnNote < 72)
-        {
-            noteDrawInfo.lineCount = 1;
-            noteDrawInfo.linePositions[0] = gLine1;
-        }
-    }
-
-    noteDrawInfo.anchorNote = drawnNote;
-    noteDrawInfo.y = y;
-}
 
 void MainComponent::drawStaff(Graphics& g, StaffCalculator& staffCalculator)
 {
-    staffSvg->drawWithin(g, Rectangle<float>(staffCalculator.x, staffCalculator.staffYIncrement, staffCalculator.width, staffCalculator.staffHeight), RectanglePlacement::Flags::xLeft | RectanglePlacement::Flags::yMid, 1.0);
+    staffSvg->drawWithin(g, Rectangle<float>(staffCalculator.x - staffCalculator.lineThickness * 2, staffCalculator.staffYIncrement, staffCalculator.width, staffCalculator.staffHeight), RectanglePlacement::Flags::xLeft | RectanglePlacement::Flags::yMid, 1.0);
 }
+
+void MainComponent::drawKeySignature(Graphics& g, StaffCalculator& staffCalculator)
+{
+    String keyName = keyMenu.getText();
+    Key key = keys.getKey(keyName);
+    if (key.name == "Sharp" || key.name == "Flat")
+        return;
+
+    if (key.numSharps > 0)
+        drawSharps(g, staffCalculator, key.numSharps);
+    else if (key.numFlats > 0)
+        drawFlats(g, staffCalculator, key.numFlats);
+}
+
+void MainComponent::drawSharps(Graphics& g, StaffCalculator& staffCalculator, int numSharps)
+{
+    for (int i = 0; i < numSharps; i++)
+    {
+        float x1 = -1, x2 = -1, y1 = -1, y2 = -1;
+        int idx = i * 2;
+
+        x1 = staffCalculator.sharpsX[idx]; x2 = staffCalculator.sharpsX[idx+1];
+        y1 = staffCalculator.sharpsY[idx]; y2 = staffCalculator.sharpsY[idx+1];
+
+        sharpSvg->drawWithin(g, Rectangle(x1, y1, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5f), RectanglePlacement::yMid, 1.0);
+        sharpSvg->drawWithin(g, Rectangle(x2, y2, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5f), RectanglePlacement::yMid, 1.0);
+    }
+}
+
+void MainComponent::drawFlats(Graphics& g, StaffCalculator& staffCalculator, int numFlats)
+{
+    for (int i = 0; i < numFlats; i++)
+    {
+        float x1 = -1, x2 = -1, y1 = -1, y2 = -1;
+        int idx = i * 2;
+
+        x1 = staffCalculator.flatsX[idx]; x2 = staffCalculator.flatsX[idx + 1];
+        y1 = staffCalculator.flatsY[idx]; y2 = staffCalculator.flatsY[idx + 1];
+
+        flatSvg->drawWithin(g, Rectangle(x1, y1, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5f), RectanglePlacement::yMid, 1.0);
+        flatSvg->drawWithin(g, Rectangle(x2, y2, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5f), RectanglePlacement::yMid, 1.0);
+    }
+}
+
+void MainComponent::keyMenuChanged()
+{  
+    pluginModel->hasUIChanges = true;
+    pluginModel->keyId = keyMenu.getSelectedId() - 1;
+    pluginModel->onChange();
+    repaint();
+}
+

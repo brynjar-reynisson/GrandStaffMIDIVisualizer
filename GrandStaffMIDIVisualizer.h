@@ -67,9 +67,15 @@ public:
         : AudioProcessor (getBusesLayout()),
         parameters(*this, nullptr, juce::Identifier("GrandStaffMIDIVisualizerParameters"),
             {
-                std::make_unique<juce::AudioParameterBool>("sharp",            // parameterID
-                                                             "Sharp",            // parameter name
-                                                             true),             // default value
+                std::make_unique<juce::AudioParameterChoice>("key",
+                    "Key",
+                    StringArray {
+                        "Sharp", "Flat",
+                        "C", "C#", "Db", "D", "Eb", "E", "F", "F#", "Gb", "G", "Ab", "A", "Bb", "B"
+                    },
+                    0
+                ),
+
                 std::make_unique<juce::AudioParameterBool>("holdNotes",            // parameterID
                                                              "Hold Notes",            // parameter name
                                                              false),             // default value
@@ -83,13 +89,13 @@ public:
                                                              false),             // default value
             })
     {
-        state.addChild({ "uiState", { { "width",  600 }, { "height", 300 } }, {} }, -1, nullptr);
+        state.addChild({ "uiState", { { "width",  500 }, { "height", 500 } }, {} }, -1, nullptr);
 
         for (int i = 0; i < 127; i++)
             pluginModel.midiNotes[i] = 0;
         editor = nullptr;
 
-        sharpParameter = parameters.getRawParameterValue("sharp");
+        keyParameter = (AudioParameterChoice*)parameters.getParameter("key");
         holdNotesParameter = parameters.getRawParameterValue("holdNotes");
         octavesParameter = parameters.getRawParameterValue("octaves");
         chordPlacementParameter = parameters.getRawParameterValue("chordsOnRight");
@@ -101,22 +107,22 @@ public:
 
     void pluginModelChanged()
     {
-        *sharpParameter = pluginModel.sharp;
+        *keyParameter = pluginModel.keyId;
         *holdNotesParameter = pluginModel.holdNotes;
         *octavesParameter = pluginModel.transposeOctaves;
         *chordPlacementParameter = pluginModel.chordsOnRight;
+        pluginModel.hasUIChanges = false;
     }
 
     void processBlock (AudioBuffer<float>& audio,  MidiBuffer& midi) override 
     {
         bool hasParamChanges = false;
-        bool newSharpValue = *sharpParameter > 0.5f ? true : false;
         bool newHoldNotesValue = *holdNotesParameter > 0.5 ? true : false;
         bool newChordPlacementValue = *chordPlacementParameter > 0.5 ? true : false;
-        if (newSharpValue != pluginModel.sharp)
+        if ((int)*keyParameter != pluginModel.keyId && !pluginModel.hasUIChanges)
         {
             hasParamChanges = true;
-            pluginModel.sharp = newSharpValue;
+            pluginModel.keyId = (int)*keyParameter;
         }
         if (newHoldNotesValue != pluginModel.holdNotes)
         {
@@ -155,6 +161,8 @@ public:
                 hasMidiChanges = true;
             }
         }
+        if (hasParamChanges)
+            pluginModel.hasParamChanges = true;
         if ((hasMidiChanges || hasParamChanges) && editor != nullptr)
         {
             editor->postCommandMessage(1);
@@ -182,8 +190,8 @@ public:
 
     void getStateInformation (MemoryBlock& destData) override
     {
-        if (auto xmlState = state.createXml())
-            copyXmlToBinary(*xmlState, destData);
+        //if (auto xmlState = state.createXml())
+        //    copyXmlToBinary(*xmlState, destData);
 
         auto paramState = parameters.copyState();
         std::unique_ptr<juce::XmlElement> xml(paramState.createXml());
@@ -198,7 +206,7 @@ public:
             if (xmlState->hasTagName(parameters.state.getType()))
             {
                 parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
-                pluginModel.sharp = (bool)xmlState->getBoolAttribute("sharp", true);
+                pluginModel.keyId = (int)xmlState->getIntAttribute("key");
                 pluginModel.holdNotes = (bool)xmlState->getBoolAttribute("holdNotes", false);
                 pluginModel.transposeOctaves = (int)xmlState->getIntAttribute("octaves", 0);
                 pluginModel.chordsOnRight = (bool)xmlState->getBoolAttribute("chordsOnRight", false);
@@ -219,12 +227,13 @@ private:
             mainComponent(&ownerIn.pluginModel)
         {
             setResizable (true, true);
-            lastUIWidth.referTo(owner.state.getChildWithName("uiState").getPropertyAsValue("width", nullptr));
-            lastUIHeight.referTo(owner.state.getChildWithName("uiState").getPropertyAsValue("height", nullptr));
-            setSize(lastUIWidth.getValue(), lastUIHeight.getValue());
+            //lastUIWidth.referTo(owner.state.getChildWithName("uiState").getPropertyAsValue("width", nullptr));
+            //lastUIHeight.referTo(owner.state.getChildWithName("uiState").getPropertyAsValue("height", nullptr));
+            //setSize(lastUIWidth.getValue(), lastUIHeight.getValue());
+            setSize(500, 500);
 
-            lastUIWidth.addListener(this);
-            lastUIHeight.addListener(this);
+            //lastUIWidth.addListener(this);
+            //lastUIHeight.addListener(this);
 
             addAndMakeVisible(mainComponent);
         }
@@ -287,7 +296,7 @@ private:
     ValueTree state { "state" };
 
     juce::AudioProcessorValueTreeState parameters;
-    std::atomic<float>* sharpParameter = nullptr;
+    AudioParameterChoice* keyParameter;
     std::atomic<float>* holdNotesParameter = nullptr;
     std::atomic<float>* octavesParameter = nullptr;
     std::atomic<float>* chordPlacementParameter = nullptr;
