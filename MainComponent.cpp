@@ -128,12 +128,16 @@ void MainComponent::resized()
 
     float labelHeight = size * 2;//bounds.getHeight() >= 200 ? 20 : bounds.getHeight() / 10;
     float labelFontHeight = labelHeight;
-    chordsLabel.setFont(juce::Font("Consolas", labelFontHeight, juce::Font::bold));
-    chordsLabel.setBounds(size * 2 + buttonSpace * 5, bounds.getBottom() - labelHeight - buttonSpace, bounds.getWidth() / 2, labelHeight);
+    //chordsLabel.setFont(juce::Font("Consolas", labelFontHeight, juce::Font::bold));
+    chordsLabel.setFont(getCustomFont());
+    chordsLabel.setFont(Font::bold);
+    chordsLabel.setFont(labelFontHeight);
+    chordsLabel.setBounds(size * 2 + buttonSpace * 5, bounds.getBottom() - labelHeight - buttonSpace, bounds.getWidth() - size * 2 - buttonSpace * 5, labelHeight);
 }
 
 void MainComponent::buttonClicked(juce::Button* button)
 {
+    pluginModel->hasUIChanges = true;
     if (button == &holdNoteButton)
     {
         bool curMode = holdNoteButton.getToggleState();
@@ -161,6 +165,7 @@ void MainComponent::buttonClicked(juce::Button* button)
     else if (button == &chordPlacementButton)
     {
         pluginModel->chordsOnRight = !pluginModel->chordsOnRight;
+        updateChordPlacementButton();
     }
 
     NullCheckedInvocation::invoke(pluginModel->onChange);
@@ -203,7 +208,7 @@ void MainComponent::paint(Graphics& g)
     
     /*
     std::set<int> midiNotes{
-        49, 53, 56
+        48, 51, 52, 54, 59
     };
     */
 
@@ -231,7 +236,6 @@ void MainComponent::paint(Graphics& g)
             keys.applyAnchorNoteAndAccents(midiNote, keys.getKey(keyMenu.getText()), chord, noteDrawInfos[midiNote]);
             staffCalculator.noteYPlacement(noteDrawInfos[midiNote].anchorNote, noteDrawInfos[midiNote], false, false, 12 * pluginModel->transposeOctaves);
         }
-            //noteYPlacement(staffCalculator, chord.name(), noteDrawInfos[midiNote], midiNote);
 
         for (int dontMove : dontMoveRight)
         {
@@ -255,6 +259,7 @@ void MainComponent::paint(Graphics& g)
             //same note repetition case, meaning one should be played with a flat or sharp accent, and the other one natural
             noteDrawInfos[midiNote].selectedToMoveRight = true;
             noteDrawInfos[midiNote].doubleNote = true;
+            noteDrawInfos[midiNote].dontMoveRight = false;
             //find the other note
             for (int j = 0; j < 127; j++)
             {
@@ -264,6 +269,8 @@ void MainComponent::paint(Graphics& g)
                 if (testAnchorNote == anchorNote)
                 {
                     noteDrawInfos[j].doubleNote = true;
+                    //noteDrawInfos[j].selectedToMoveRight = true;
+                    //noteDrawInfos[j].hasPlacementConflict = true;
                     break;
                 }
             }
@@ -342,11 +349,16 @@ void MainComponent::paint(Graphics& g)
     {
         if (firstNote && pluginModel->chordsOnRight)
         {
-            float chordY = noteDrawInfos[midiNote].y - staffCalculator.noteHeight / 2;
+            float textWidth = getLocalBounds().getWidth() - baseNoteX - staffCalculator.noteWidth * 3;
+            float textHeight = textWidth / 7.5f;
+
+            float chordY = noteDrawInfos[midiNote].y - textHeight * 0.5 + staffCalculator.noteHeight * 0.5;//staffCalculator.noteHeight / 2;
             float chordX = staffCalculator.staffHeight * 1.66;
             g.setFont(getCustomFont());
-            g.setFont(getLocalBounds().getHeight() / 5);
-            g.drawText(chord.name(), chordX, chordY, staffCalculator.noteWidth * 10, staffCalculator.noteHeight * 2, Justification::centredLeft);
+            g.setFont(textHeight);
+            //g.setFont(getLocalBounds().getHeight() / 5);
+            //g.drawText(chord.name(), chordX, chordY, staffCalculator.noteWidth * 50, staffCalculator.noteHeight * 2, Justification::centredLeft);
+            g.drawText(chord.name(), chordX, chordY, textWidth, textHeight, Justification::centredLeft);
             firstNote = false;
         }
 
@@ -355,14 +367,16 @@ void MainComponent::paint(Graphics& g)
         if (noteDrawInfos[midiNote].selectedToMoveRight && !noteDrawInfos[midiNote].dontMoveRight)
         {
             noteX += staffCalculator.noteWidth - staffCalculator.lineThickness * 2;
-            if(noteDrawInfos[midiNote].doubleNote)
-            {
-                int extendedX = noteX + staffCalculator.noteWidth - staffCalculator.lineThickness * 2;
-                noteSvg->drawWithin(g, Rectangle<float>(extendedX, noteDrawInfos[midiNote].y, staffCalculator.noteWidth, staffCalculator.noteHeight), juce::RectanglePlacement::Flags::xLeft, 1.0);
-            }
-        }
-
-        noteSvg->drawWithin(g, Rectangle<float>(noteX, noteDrawInfos[midiNote].y - staffCalculator.lineThickness*2, staffCalculator.noteWidth, staffCalculator.noteHeight+staffCalculator.lineThickness*4), juce::RectanglePlacement::Flags::xLeft, 1.0);
+            //if(noteDrawInfos[midiNote].doubleNote)
+            //{
+            //    int extendedX = noteX + staffCalculator.noteWidth - staffCalculator.lineThickness * 2;
+            //    noteSvg->drawWithin(g, Rectangle<float>(extendedX, noteDrawInfos[midiNote].y, staffCalculator.noteWidth, staffCalculator.noteHeight), juce::RectanglePlacement::Flags::xLeft, 1.0);
+            //}
+            //else {
+                noteSvg->drawWithin(g, Rectangle<float>(noteX, noteDrawInfos[midiNote].y - staffCalculator.lineThickness * 2, staffCalculator.noteWidth, staffCalculator.noteHeight + staffCalculator.lineThickness * 4), juce::RectanglePlacement::Flags::xLeft, 1.0);
+            //}
+        } else
+            noteSvg->drawWithin(g, Rectangle<float>(noteX, noteDrawInfos[midiNote].y - staffCalculator.lineThickness*2, staffCalculator.noteWidth, staffCalculator.noteHeight+staffCalculator.lineThickness*4), juce::RectanglePlacement::Flags::xLeft, 1.0);
 
         for (int j=0; j<noteDrawInfos[midiNote].lineCount; j++)
         {

@@ -119,25 +119,28 @@ public:
         bool hasParamChanges = false;
         bool newHoldNotesValue = *holdNotesParameter > 0.5 ? true : false;
         bool newChordPlacementValue = *chordPlacementParameter > 0.5 ? true : false;
-        if ((int)*keyParameter != pluginModel.keyId && !pluginModel.hasUIChanges)
+        if (!pluginModel.hasUIChanges)
         {
-            hasParamChanges = true;
-            pluginModel.keyId = (int)*keyParameter;
-        }
-        if (newHoldNotesValue != pluginModel.holdNotes)
-        {
-            hasParamChanges = true;
-            pluginModel.holdNotes = newHoldNotesValue;
-        }
-        if ((int)*octavesParameter != pluginModel.transposeOctaves)
-        {
-            hasParamChanges = true;
-            pluginModel.transposeOctaves = (int)*octavesParameter;
-        }
-        if (newChordPlacementValue != pluginModel.chordsOnRight)
-        {
-            hasParamChanges = true;
-            pluginModel.chordsOnRight = newChordPlacementValue;
+            if ((int)*keyParameter != pluginModel.keyId && !pluginModel.hasUIChanges)
+            {
+                hasParamChanges = true;
+                pluginModel.keyId = (int)*keyParameter;
+            }
+            if (newHoldNotesValue != pluginModel.holdNotes)
+            {
+                hasParamChanges = true;
+                pluginModel.holdNotes = newHoldNotesValue;
+            }
+            if ((int)*octavesParameter != pluginModel.transposeOctaves)
+            {
+                hasParamChanges = true;
+                pluginModel.transposeOctaves = (int)*octavesParameter;
+            }
+            if (newChordPlacementValue != pluginModel.chordsOnRight)
+            {
+                hasParamChanges = true;
+                pluginModel.chordsOnRight = newChordPlacementValue;
+            }
         }
 
         audio.clear();
