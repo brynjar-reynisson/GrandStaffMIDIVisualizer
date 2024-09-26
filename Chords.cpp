@@ -22,17 +22,18 @@
 */
 
 #include "MainComponent.h"
+#include <random>
 
-Chord::Chord(ChordPattern pattern, String baseNote, String bassNote)
+Chord::Chord(ChordPattern pattern, String rootNote, String bassNote)
 {
 	this->pattern = pattern;
-	this->baseNote = baseNote;
+	this->rootNote = rootNote;
 	this->bassNote = bassNote;
 };
 
 String Chord::name()
 {
-	String chordName = baseNote;
+	String chordName = rootNote;
 	chordName += pattern.name;
 	if (bassNote.length() > 0)
 	{
@@ -203,12 +204,39 @@ Chords::Chords()
 		//suspended 2nd and 4th (no 5)
 		ChordPattern("101001000000", "sus24(no5)", Sus),
 		ChordPattern("101001000001", "maj7sus24(no5)", Sus),
+		//EasterEgg
+		ChordPattern("111111111111", "-Easter Egg", EasterEgg)
 	};
 
 	for (ChordPattern pattern : patternList)
 	{
 		this->patterns.insert({ pattern.pattern, pattern });
 	}
+}
+
+
+static std::vector<String> easterEggs =
+{
+	" Madness!",
+	" You think this is a good idea?",
+	" Someone forgot their meds",
+	" Is the cat lying on the keyboard?",
+	" Take it easy!",
+	" Don't push me that hard!",
+	" Maybe try the trumpet...",
+	" Seriously?",
+	" How many hands?"
+};
+
+static 	std::random_device rand_dev;
+static std::mt19937 generator(rand_dev());
+static const int range_from = 0;
+static const int range_to = easterEggs.size() - 1;
+static std::uniform_int_distribution<int>  distr(range_from, range_to);
+
+static String randomEasterEgg()
+{
+	return easterEggs[distr(generator)];
 }
 
 void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
@@ -259,20 +287,20 @@ void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
 			{
 				chord.pattern = it->second;
 				if (key.name == Key::SHARP)
-					chord.baseNote = MidiMessage::getMidiNoteName(curBassNote, true, false, 3);
+					chord.rootNote = MidiMessage::getMidiNoteName(curBassNote, true, false, 3);
 				else if(key.name == Key::FLAT)
-					chord.baseNote = MidiMessage::getMidiNoteName(curBassNote, false, false, 3);
+					chord.rootNote = MidiMessage::getMidiNoteName(curBassNote, false, false, 3);
 				else
 				{
 
 					ChordPattern chordPattern = it->second;
-					chord.baseNote = key.selectChordBaseNoteName(curBassNote, chordPattern.chordType);
+					chord.rootNote = key.selectChordBaseNoteName(curBassNote, chordPattern.chordType);
 					//TODO, add midi notes to Chord once that's part of the signature
 				}
 				break;
 			}
 		}
-		if (chord.baseNote == "")
+		if (chord.rootNote == "")
 		{
 			//raise the cur bass note by 12 and try again
 			notes[curBassNote] = false;
@@ -288,6 +316,11 @@ void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
 	}
 	if (chord.pattern.pattern.length() == 0)
 		return;
+
+	if (chord.pattern.chordType == EasterEgg)
+	{
+		chord.pattern.name = randomEasterEgg();
+	}
 
 	//see if the bass note is not the same as the chord base note
 	if (bassNote == curBassNote)

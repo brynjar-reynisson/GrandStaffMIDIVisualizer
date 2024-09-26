@@ -76,17 +76,23 @@ public:
                     0
                 ),
 
-                std::make_unique<juce::AudioParameterBool>("holdNotes",            // parameterID
-                                                             "Hold Notes",            // parameter name
-                                                             false),             // default value
-                std::make_unique<juce::AudioParameterInt>("octaves",      // parameterID
-                                                            "Octaves",     // parameter name
-                                                            -3,
-                                                            3,
-                                                            0),              // default value
-                std::make_unique<juce::AudioParameterBool>("chordsOnRight",            // parameterID
-                                                             "Display chords on right side",            // parameter name
-                                                             false),             // default value
+                std::make_unique<juce::AudioParameterBool>("holdNotes",                       // parameterID
+                                                             "Hold Notes",                    // parameter name
+                                                             false),                          // default value
+                std::make_unique<juce::AudioParameterInt>("octaves",                          // parameterID
+                                                            "Octaves",                        // parameter name
+                                                            -3,                               // min value
+                                                            3,                                // max value
+                                                            0),                               // default value
+                std::make_unique<juce::AudioParameterInt>("chordPlacement",                  // parameterID
+                                                             "Chords Placement",              // parameter name
+                                                             0,                               // min value
+                                                             2,                               // max value
+                                                             1),                              // default value
+                std::make_unique<juce::AudioParameterBool>("chordFontBold",                   // parameterID
+                                                             "Display chords with bold font", // parameter name
+                                                             false),                          // default value
+
             })
     {
         state.addChild({ "uiState", { { "width",  500 }, { "height", 500 } }, {} }, -1, nullptr);
@@ -98,7 +104,8 @@ public:
         keyParameter = (AudioParameterChoice*)parameters.getParameter("key");
         holdNotesParameter = parameters.getRawParameterValue("holdNotes");
         octavesParameter = parameters.getRawParameterValue("octaves");
-        chordPlacementParameter = parameters.getRawParameterValue("chordsOnRight");
+        chordPlacementParameter = parameters.getRawParameterValue("chordPlacement");
+        chordFontBoldParameter = parameters.getRawParameterValue("chordFontBold");
 
         pluginModel.onChange = [&] { pluginModelChanged(); };
     }
@@ -110,21 +117,27 @@ public:
         *keyParameter = pluginModel.keyId;
         *holdNotesParameter = pluginModel.holdNotes;
         *octavesParameter = pluginModel.transposeOctaves;
-        *chordPlacementParameter = pluginModel.chordsOnRight;
+        *chordPlacementParameter = pluginModel.chordPlacement;
+        *chordFontBoldParameter = pluginModel.chordFontBold;
         pluginModel.hasUIChanges = false;
     }
 
     void processBlock (AudioBuffer<float>& audio,  MidiBuffer& midi) override 
     {
         bool hasParamChanges = false;
-        bool newHoldNotesValue = *holdNotesParameter > 0.5 ? true : false;
-        bool newChordPlacementValue = *chordPlacementParameter > 0.5 ? true : false;
         if (!pluginModel.hasUIChanges)
         {
+            bool newHoldNotesValue = *holdNotesParameter > 0.5 ? true : false;
+            bool newChordFontBoldValue = *chordFontBoldParameter > 0.5 ? true : false;
             if ((int)*keyParameter != pluginModel.keyId && !pluginModel.hasUIChanges)
             {
                 hasParamChanges = true;
                 pluginModel.keyId = (int)*keyParameter;
+            }
+            if ((int)*chordPlacementParameter != pluginModel.chordPlacement && !pluginModel.hasUIChanges)
+            {
+                hasParamChanges = true;
+                pluginModel.chordPlacement = (int)*chordPlacementParameter;
             }
             if (newHoldNotesValue != pluginModel.holdNotes)
             {
@@ -135,11 +148,6 @@ public:
             {
                 hasParamChanges = true;
                 pluginModel.transposeOctaves = (int)*octavesParameter;
-            }
-            if (newChordPlacementValue != pluginModel.chordsOnRight)
-            {
-                hasParamChanges = true;
-                pluginModel.chordsOnRight = newChordPlacementValue;
             }
         }
 
@@ -209,12 +217,23 @@ public:
             if (xmlState->hasTagName(parameters.state.getType()))
             {
                 parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
+                pluginModel.keyId = (int)*keyParameter;
+                pluginModel.holdNotes = *holdNotesParameter > 0.5 ? true : false;
+                pluginModel.transposeOctaves = (int)*octavesParameter;
+                pluginModel.chordPlacement = (int)*chordPlacementParameter;
+                pluginModel.chordFontBold = *chordFontBoldParameter > 0.5 ? true : false;
+                pluginModel.hasParamChanges = true;
+
+                /*
                 pluginModel.keyId = (int)xmlState->getIntAttribute("key");
                 pluginModel.holdNotes = (bool)xmlState->getBoolAttribute("holdNotes", false);
                 pluginModel.transposeOctaves = (int)xmlState->getIntAttribute("octaves", 0);
-                pluginModel.chordsOnRight = (bool)xmlState->getBoolAttribute("chordsOnRight", false);
+                pluginModel.chordPlacement = (int)xmlState->getIntAttribute("chordPlacement", false);
+                pluginModel.chordFontBold = (bool)xmlState->getBoolAttribute("chordFontBold", false);
+                */
                 if (editor != nullptr)
                     editor->postCommandMessage(1);
+
             }
         }
     }
@@ -303,6 +322,7 @@ private:
     std::atomic<float>* holdNotesParameter = nullptr;
     std::atomic<float>* octavesParameter = nullptr;
     std::atomic<float>* chordPlacementParameter = nullptr;
+    std::atomic<float>* chordFontBoldParameter = nullptr;
     PluginModel pluginModel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GrandStaffMIDIVisualizerProcessor)

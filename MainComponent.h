@@ -33,7 +33,8 @@ enum ChordType
     Aug,
     Tritonic,
     Minor,
-    Dim
+    Dim,
+    EasterEgg
 };
 //==============================================================================
 struct ChordPattern
@@ -54,11 +55,11 @@ static ChordPattern nullPattern = ChordPattern();
 //==============================================================================
 struct Chord
 {
-    Chord(ChordPattern pattern = nullPattern, String baseNote = "", String bassNote = "");
+    Chord(ChordPattern pattern = nullPattern, String rootNote = "", String bassNote = "");
     String name();
 
     ChordPattern pattern;
-    String baseNote;
+    String rootNote;
     String bassNote;
 
     bool isMajor3rd() const
@@ -84,10 +85,7 @@ struct NoteDrawInfo
     float linePositions[5];
     int midiNote = -1;
     int anchorNote = -1; //where the note will be drawn, e.g. F# on F, Ab on A
-    bool dontMoveRight = false;
-    bool selectedToMoveRight = false;
-    bool hasPlacementConflict = false;
-    bool doubleNote = false; //true if two notes have the same anchorNote
+    int moveRight = 0;
 };
 //==============================================================================
 struct Key
@@ -130,6 +128,26 @@ public:
     */
     void name(std::set<int>& midiNotes, Key& key, Chord& chord);
 
+    static bool chordHasSuperPower(Chord& chord)
+    {
+        if (chord.isMajor3rd() && (chord.rootNote == "Bb" || chord.rootNote == "Eb" || chord.rootNote == "C" || chord.rootNote == "D" ||
+            chord.rootNote == "E" || chord.rootNote == "F" || chord.rootNote == "G" || chord.rootNote == "A" || chord.rootNote == "B"))
+            return true;
+        else if (chord.isMinor3rd() && (chord.rootNote == "C" || chord.rootNote == "D" || chord.rootNote == "E" || chord.rootNote == "G" ||
+            chord.rootNote == "A" || chord.rootNote == "B"))
+            return true;
+        return false;
+    }
+
+    static bool isChordSharp(Chord& chord)
+    {
+        if (chord.isMajor3rd() && (chord.rootNote == "Eb" || chord.rootNote == "Bb" || chord.rootNote == "F" || chord.rootNote == "C"))
+            return false;
+        else if (chord.isMinor3rd() && (chord.rootNote == "C" || chord.rootNote == "G" || chord.rootNote == "D" || chord.rootNote == "A"))
+            return false;
+        return true;
+    }
+
 private:
     std::map<String, ChordPattern> patterns;
 };
@@ -141,32 +159,13 @@ public:
     int transposeOctaves = 0;
     int keyId = 0;
     bool holdNotes = false;
-    bool chordsOnRight = false;
+    int chordPlacement = 1;
+    bool chordFontBold = false;
     bool hasParamChanges = false;
     bool hasUIChanges = false;
 
     std::function<void()> onChange;
 };
-
-static bool chordHasSuperPower(Chord& chord)
-{
-    if (chord.isMajor3rd() && (chord.baseNote == "Bb" || chord.baseNote == "Eb" || chord.baseNote == "C" || chord.baseNote == "D" ||
-        chord.baseNote == "E" || chord.baseNote == "F" || chord.baseNote == "G" || chord.baseNote == "A" || chord.baseNote == "B"))
-        return true;
-    else if (chord.isMinor3rd() && (chord.baseNote == "C" || chord.baseNote == "D" || chord.baseNote == "E" || chord.baseNote == "G" ||
-        chord.baseNote == "A" || chord.baseNote == "B"))
-        return true;
-    return false;
-}
-
-static bool isChordSharp(Chord& chord)
-{
-    if (chord.isMajor3rd() && (chord.baseNote == "Eb" || chord.baseNote == "Bb" || chord.baseNote == "F" || chord.baseNote == "C"))
-        return false;
-    else if (chord.isMinor3rd() && (chord.baseNote == "C" || chord.baseNote == "G" || chord.baseNote == "D" || chord.baseNote == "A"))
-        return false;
-    return true;
-}
 
 //==============================================================================
 class StaffCalculator
@@ -228,8 +227,6 @@ private:
 class MainComponent final : public Component, public Button::Listener {
 public:
     MainComponent(PluginModel* model) :
-        //sharpButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground),
-        //flatButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground),
         holdNoteButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
     {
         init(model);
@@ -249,21 +246,18 @@ private:
     void drawSharps(Graphics& g, StaffCalculator& staffCalculator, int numSharps);
     void drawFlats(Graphics& g, StaffCalculator& staffCalculator, int numFlats);
 
-    //const std::unique_ptr<Drawable> staffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_DM_03_svg, BinaryData::Grand_staff_DM_03_svgSize);
     const std::unique_ptr<Drawable> staffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_02_svg, BinaryData::Grand_staff_02_svgSize);
     const std::unique_ptr<Drawable> noteSvg = Drawable::createFromImageData(BinaryData::Whole_note_svg, BinaryData::Whole_note_svgSize);
     const std::unique_ptr<Drawable> sharpSvg = Drawable::createFromImageData(BinaryData::Sharp_svg, BinaryData::Sharp_svgSize);
     const std::unique_ptr<Drawable> flatSvg = Drawable::createFromImageData(BinaryData::Flat_svg, BinaryData::Flat_svgSize);
     const std::unique_ptr<Drawable> naturalSvg = Drawable::createFromImageData(BinaryData::Natural_svg, BinaryData::Natural_svgSize);
-    Label chordsLabel;
-    //DrawableButton sharpButton;
-    //DrawableButton flatButton;
+    ComboBox keyMenu;
     DrawableButton holdNoteButton;
     TextButton leftArrowButton;
     Label octaveLabel;
     TextButton rightArrowButton;
     TextButton chordPlacementButton;
-    ComboBox keyMenu;
+    TextButton chordFontBoldButton;
 
     PluginModel* pluginModel;
     Keys keys;

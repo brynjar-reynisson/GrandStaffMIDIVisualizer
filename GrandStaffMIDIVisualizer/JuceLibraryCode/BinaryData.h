@@ -29,8 +29,11 @@ namespace BinaryData
     extern const char*   Flat_svg;
     const int            Flat_svgSize = 7869;
 
+    extern const char*   InconsolataRegular_ttf;
+    const int            InconsolataRegular_ttfSize = 101752;
+
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 7;
+    const int namedResourceListSize = 8;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

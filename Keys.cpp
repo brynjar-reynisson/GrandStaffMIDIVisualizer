@@ -154,7 +154,7 @@ static String getNoteName(int midiNote, Key& key, NoteDrawInfo& noteDrawInfo)
 
 void Keys::applyAnchorNoteAndAccents(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo)
 {
-	if (chordHasSuperPower(chord))
+	if (Chords::chordHasSuperPower(chord))
 	{
 		applyAnchorNoteAndAccentsUsingChordKey(midiNote, key, chord, noteDrawInfo);
 		return;
@@ -201,7 +201,7 @@ static std::map<String, String> minorToMajor = {
 
 void Keys::applyAnchorNoteAndAccentsUsingChordKey(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo)
 {
-	Key chordKey = chord.isMajor3rd() ? getKey(chord.baseNote) : getKey(minorToMajor[chord.baseNote]);
+	Key chordKey = chord.isMajor3rd() ? getKey(chord.rootNote) : getKey(minorToMajor[chord.rootNote]);
 	String noteName = MidiMessage::getMidiNoteName(midiNote, chordKey.numSharps > 0, false, 4);
 	if (noteName.length() == 1)
 	{

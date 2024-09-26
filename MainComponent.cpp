@@ -25,26 +25,24 @@
 #include <cmath>
 #include <set>
 
-static const Font getCustomFont()
+static const Font getCustomFont(bool bold = 1)
 {
-    static auto typeface = Typeface::createSystemTypefaceFor(BinaryData::InconsolataBold_ttf, BinaryData::InconsolataBold_ttfSize);
-    return Font(typeface);
+    if (bold)
+        return Font(Typeface::createSystemTypefaceFor(BinaryData::InconsolataBold_ttf, BinaryData::InconsolataBold_ttfSize));
+    else
+        return Font(Typeface::createSystemTypefaceFor(BinaryData::InconsolataRegular_ttf, BinaryData::InconsolataRegular_ttfSize));
 }
 
 void MainComponent::init(PluginModel* model)
 {
     this->pluginModel = model;
-    chordsLabel.setFont(getCustomFont());
-    
-    chordsLabel.setText("", NotificationType::dontSendNotification);
-    chordsLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-    chordsLabel.setJustificationType(juce::Justification::left);
 
     holdNoteButton.addListener(this);
     holdNoteButton.setImages(noteSvg.get());
     holdNoteButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
     holdNoteButton.setColour(TextButton::buttonOnColourId, Colours::white);
     holdNoteButton.setToggleable(true);
+    holdNoteButton.setToggleState(pluginModel->holdNotes, false);
     holdNoteButton.setTooltip("Hold notes");
 
     int i = 1;
@@ -75,17 +73,23 @@ void MainComponent::init(PluginModel* model)
     chordPlacementButton.setColour(TextButton::textColourOffId, Colours::black);
     chordPlacementButton.setColour(TextButton::buttonColourId, Colours::white);
 
+    chordFontBoldButton.addListener(this);
+    chordFontBoldButton.setColour(TextButton::textColourOnId, Colours::black);
+    chordFontBoldButton.setColour(TextButton::textColourOffId, Colours::darkgrey);
+    chordFontBoldButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
+    chordFontBoldButton.setColour(TextButton::buttonOnColourId, Colours::white);
+    chordFontBoldButton.setButtonText("B");
+    chordFontBoldButton.setTooltip("Display chords with bold font");
+
     onParametersChanged();
 
-    addAndMakeVisible(chordsLabel);
-    //addAndMakeVisible(sharpButton);
-    //addAndMakeVisible(flatButton);
     addAndMakeVisible(holdNoteButton);
     addAndMakeVisible(keyMenu);
     addAndMakeVisible(leftArrowButton);
     addAndMakeVisible(octaveLabel);
     addAndMakeVisible(rightArrowButton);
     addAndMakeVisible(chordPlacementButton);
+    addAndMakeVisible(chordFontBoldButton);
 }
 
 void MainComponent::onParametersChanged()
@@ -94,20 +98,26 @@ void MainComponent::onParametersChanged()
     holdNoteButton.setToggleState(pluginModel->holdNotes, false);
     octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
     updateChordPlacementButton();
+    chordFontBoldButton.setToggleState(pluginModel->chordFontBold, false);
     pluginModel->hasParamChanges = false;
 }
 
 void MainComponent::updateChordPlacementButton()
 {
-    if (pluginModel->chordsOnRight)
+    if (pluginModel->chordPlacement == 0)
     {
         chordPlacementButton.setButtonText("V");
         chordPlacementButton.setTooltip("Display chords in bottom left corner");
     }
-    else
+    else if (pluginModel->chordPlacement == 1)
     {
         chordPlacementButton.setButtonText(">");
         chordPlacementButton.setTooltip("Display chords to the right of the Grand Staff");
+    }
+    else if (pluginModel->chordPlacement == 2)
+    {
+        chordPlacementButton.setButtonText(" ");
+        chordPlacementButton.setTooltip("Don't display chords");
     }
 }
 
@@ -125,14 +135,7 @@ void MainComponent::resized()
     rightArrowButton.setBounds(bounds.getWidth() - size, 0, size, size);
 
     chordPlacementButton.setBounds(buttonSpace, bounds.getHeight() - size - buttonSpace, size * 1.1, size);
-
-    float labelHeight = size * 2;//bounds.getHeight() >= 200 ? 20 : bounds.getHeight() / 10;
-    float labelFontHeight = labelHeight;
-    //chordsLabel.setFont(juce::Font("Consolas", labelFontHeight, juce::Font::bold));
-    chordsLabel.setFont(getCustomFont());
-    chordsLabel.setFont(Font::bold);
-    chordsLabel.setFont(labelFontHeight);
-    chordsLabel.setBounds(size * 2 + buttonSpace * 5, bounds.getBottom() - labelHeight - buttonSpace, bounds.getWidth() - size * 2 - buttonSpace * 5, labelHeight);
+    chordFontBoldButton.setBounds(size * 1.1 + buttonSpace * 2, bounds.getHeight() - size - buttonSpace, size * 1.1, size);
 }
 
 void MainComponent::buttonClicked(juce::Button* button)
@@ -164,8 +167,14 @@ void MainComponent::buttonClicked(juce::Button* button)
     }
     else if (button == &chordPlacementButton)
     {
-        pluginModel->chordsOnRight = !pluginModel->chordsOnRight;
+        pluginModel->chordPlacement = pluginModel->chordPlacement == 2 ? 0 : pluginModel->chordPlacement + 1;
         updateChordPlacementButton();
+    }
+    else if (button == &chordFontBoldButton)
+    {
+        bool curMode = chordFontBoldButton.getToggleState();
+        chordFontBoldButton.setToggleState(!curMode, false);
+        pluginModel->chordFontBold = chordFontBoldButton.getToggleState();
     }
 
     NullCheckedInvocation::invoke(pluginModel->onChange);
@@ -181,9 +190,76 @@ static int dontMoveRight[] = {
 };
 
 static std::set<int> conflictLosers = {
+    12, 16, 19, 23, 26, 29,
     33, 36, 40, 43, 47,
-    50, 53, 57, 60, 64
+    50, 53, 57, 60, 64,
+    67, 71, 74, 77, 81
 };
+
+/*
+* When notes are placed close to neighbor notes (e.g. E and F), one or more notes need to move to the right.
+* This method figures out how much to the right notes need to move (three places at most)
+*/
+static void resolveNeighborConflicts(std::set<int>& midiNotes, NoteDrawInfo* noteDrawInfos)
+{
+    std::map<int, int> noteCount;
+    for (int midiNote : midiNotes)
+    {
+        /*
+        * Here we mark the note count for each anchorNote (the actual graphical placement of the midi note).
+        * For all double notes, move the second one of them, one place to the right.
+        */
+        NoteDrawInfo& noteDrawInfo = noteDrawInfos[midiNote];
+        if (noteCount.find(noteDrawInfo.anchorNote) != noteCount.end())
+        {
+            noteCount[noteDrawInfo.anchorNote] = 2;
+            noteDrawInfo.moveRight = 1;
+        }
+        else
+        {
+            noteCount[noteDrawInfo.anchorNote] = 1;
+        }
+    }
+    for (int midiNote : midiNotes)
+    {
+        /*
+        * We don't want to move notes that are over a staff line too much to the right,
+        * other notes (conflictLosers) will by default move as much to the right as needed.
+        */
+        NoteDrawInfo& noteDrawInfo = noteDrawInfos[midiNote];
+        int cur = noteDrawInfo.anchorNote;
+        if (conflictLosers.find(cur) != conflictLosers.end())
+        {
+            int belowNeighbor = -1;
+            int aboveNeighbor = -1;
+            if (MidiMessage::getMidiNoteName(cur, true, false, 4) == "E" || MidiMessage::getMidiNoteName(cur, true, false, 4) == "B")
+            {
+                belowNeighbor = cur - 2;
+                aboveNeighbor = cur + 1;
+            }
+            else if (MidiMessage::getMidiNoteName(cur, true, false, 4) == "F" || MidiMessage::getMidiNoteName(cur, true, false, 4) == "C")
+            {
+                belowNeighbor = cur - 1;
+                aboveNeighbor = cur + 2;
+            }
+            else
+            {
+                belowNeighbor = cur - 2;
+                aboveNeighbor = cur + 2;
+            }
+            int neighborCount = 0;
+            if (noteCount.find(belowNeighbor) != noteCount.end())
+            {
+                neighborCount = noteCount[belowNeighbor];
+            }
+            if (noteCount.find(aboveNeighbor) != noteCount.end())
+            {
+                neighborCount = noteCount[aboveNeighbor] > neighborCount ? noteCount[aboveNeighbor] : neighborCount;
+            }
+            noteDrawInfo.moveRight += neighborCount;
+        }
+    }
+}
 
 void MainComponent::paint(Graphics& g)
 {
@@ -208,18 +284,13 @@ void MainComponent::paint(Graphics& g)
     
     /*
     std::set<int> midiNotes{
-        48, 51, 52, 54, 59
+        48, 52, 55, 58
     };
     */
 
     Chord chord;
     chords.name(midiNotes, keys.getKey(keyMenu.getText()), chord);
     
-    if (!pluginModel->chordsOnRight)
-        chordsLabel.setText(chord.name(), NotificationType::dontSendNotification);
-    else
-        chordsLabel.setText("", NotificationType::dontSendNotification);
-
     //Find out where to place the notes
     NoteDrawInfo noteDrawInfos[127];
     std::set<int> anchorNotes;
@@ -236,77 +307,14 @@ void MainComponent::paint(Graphics& g)
             keys.applyAnchorNoteAndAccents(midiNote, keys.getKey(keyMenu.getText()), chord, noteDrawInfos[midiNote]);
             staffCalculator.noteYPlacement(noteDrawInfos[midiNote].anchorNote, noteDrawInfos[midiNote], false, false, 12 * pluginModel->transposeOctaves);
         }
-
-        for (int dontMove : dontMoveRight)
-        {
-            if (dontMove == noteDrawInfos[midiNote].anchorNote)
-            {
-                noteDrawInfos[midiNote].dontMoveRight = true;
-                break;
-            }
-        }
     }
 
-    //For neighbor notes, find out who needs to move right
-    for (int midiNote : midiNotes)
-    {
-        int anchorNote = noteDrawInfos[midiNote].anchorNote;
-        if (anchorNote < 0)
-            continue;
-
-        if (anchorNotes.find(anchorNote) != anchorNotes.end())
-        {
-            //same note repetition case, meaning one should be played with a flat or sharp accent, and the other one natural
-            noteDrawInfos[midiNote].selectedToMoveRight = true;
-            noteDrawInfos[midiNote].doubleNote = true;
-            noteDrawInfos[midiNote].dontMoveRight = false;
-            //find the other note
-            for (int j = 0; j < 127; j++)
-            {
-                int testAnchorNote = noteDrawInfos[j].anchorNote;
-                if (testAnchorNote < 0)
-                    continue;
-                if (testAnchorNote == anchorNote)
-                {
-                    noteDrawInfos[j].doubleNote = true;
-                    //noteDrawInfos[j].selectedToMoveRight = true;
-                    //noteDrawInfos[j].hasPlacementConflict = true;
-                    break;
-                }
-            }
-        }
-        else
-            anchorNotes.insert(anchorNote);
-    }
-
-    for (int midiNote : midiNotes)
-    {
-        int anchorNote = noteDrawInfos[midiNote].anchorNote;
-        if (anchorNote < 0)
-            continue;
-
-        for (int cur : anchorNotes)
-        {
-            int diff = std::abs(cur - anchorNote);
-            if (diff > 0 && diff < 3)
-            {
-                noteDrawInfos[midiNote].hasPlacementConflict = true;
-                if ((anchorNote < 31 || anchorNote > 54) && !noteDrawInfos[midiNote].dontMoveRight)
-                    noteDrawInfos[midiNote].selectedToMoveRight = true;
-                else if(conflictLosers.find(anchorNote) != conflictLosers.end()) {
-                    noteDrawInfos[midiNote].selectedToMoveRight = true;
-                }
-            }
-        }
-    }
+    resolveNeighborConflicts(midiNotes, noteDrawInfos);
 
     //Figure out flat/sharp indentation
     float lastY = -1;
     int lastAccentIndent = 0;
     std::set<int>::reverse_iterator rit;
-    //float sharpDiffMultiplier = 3;
-    //float flatDiffMultiplier = 2;
-    //float diffMultiplier = keyMenu.getText() == Key::SHARP ? 3 : 2;//sharps need more space than flats
     for (rit = midiNotes.rbegin(); rit != midiNotes.rend(); rit++)
     {
         // *rit to access value
@@ -342,41 +350,42 @@ void MainComponent::paint(Graphics& g)
 
     float baseNoteX = staffCalculator.x + (staffCalculator.staffHeight / 2) + (staffCalculator.staffHeight / 4) + staffCalculator.noteWidth * 5;
     int lineX = baseNoteX - staffCalculator.lineThickness;
-    float accentX = baseNoteX - staffCalculator.noteWidth;
     bool firstNote = true;
 
     for (int midiNote : midiNotes)
     {
-        if (firstNote && pluginModel->chordsOnRight)
+        if (firstNote)
         {
-            float textWidth = getLocalBounds().getWidth() - baseNoteX - staffCalculator.noteWidth * 3;
-            float textHeight = textWidth / 7.5f;
-
-            float chordY = noteDrawInfos[midiNote].y - textHeight * 0.5 + staffCalculator.noteHeight * 0.5;//staffCalculator.noteHeight / 2;
-            float chordX = staffCalculator.staffHeight * 1.66;
-            g.setFont(getCustomFont());
-            g.setFont(textHeight);
-            //g.setFont(getLocalBounds().getHeight() / 5);
-            //g.drawText(chord.name(), chordX, chordY, staffCalculator.noteWidth * 50, staffCalculator.noteHeight * 2, Justification::centredLeft);
-            g.drawText(chord.name(), chordX, chordY, textWidth, textHeight, Justification::centredLeft);
+            if (pluginModel->chordPlacement > 0)
+            {
+                Rectangle<int> localBounds = getLocalBounds();
+                float textWidth = pluginModel->chordPlacement ?
+                    localBounds.getWidth() - baseNoteX - staffCalculator.noteWidth * 3 :
+                    localBounds.getWidth() - localBounds.getHeight() * 0.05 - staffCalculator.lineThickness * 2;
+                float textHeight = pluginModel->chordPlacement == 2 ?
+                    textWidth / 7.5f :
+                    localBounds.getHeight() * 0.1;
+                float chordX;
+                float chordY;
+                if (pluginModel->chordPlacement == 2)
+                {
+                    chordX = staffCalculator.staffHeight * 1.66;
+                    chordY = noteDrawInfos[midiNote].y - textHeight * 0.5 + staffCalculator.noteHeight * 0.5;
+                }
+                else if (pluginModel->chordPlacement == 1) {
+                    chordX = localBounds.getHeight() * 0.1 + staffCalculator.lineThickness * 10;
+                    chordY = localBounds.getHeight() - textHeight;
+                }
+                g.setFont(getCustomFont(pluginModel->chordFontBold));
+                g.setFont(textHeight);
+                g.drawText(chord.name(), chordX, chordY, textWidth, textHeight, Justification::centredLeft);
+            }
             firstNote = false;
         }
 
-        float noteX = baseNoteX;
+        float noteX = baseNoteX + staffCalculator.noteWidth * noteDrawInfos[midiNote].moveRight - staffCalculator.lineThickness * noteDrawInfos[midiNote].moveRight * 2;
         float accentX = baseNoteX - (staffCalculator.noteWidth) - (noteDrawInfos[midiNote].accentIndent * staffCalculator.noteWidth * 0.75);
-        if (noteDrawInfos[midiNote].selectedToMoveRight && !noteDrawInfos[midiNote].dontMoveRight)
-        {
-            noteX += staffCalculator.noteWidth - staffCalculator.lineThickness * 2;
-            //if(noteDrawInfos[midiNote].doubleNote)
-            //{
-            //    int extendedX = noteX + staffCalculator.noteWidth - staffCalculator.lineThickness * 2;
-            //    noteSvg->drawWithin(g, Rectangle<float>(extendedX, noteDrawInfos[midiNote].y, staffCalculator.noteWidth, staffCalculator.noteHeight), juce::RectanglePlacement::Flags::xLeft, 1.0);
-            //}
-            //else {
-                noteSvg->drawWithin(g, Rectangle<float>(noteX, noteDrawInfos[midiNote].y - staffCalculator.lineThickness * 2, staffCalculator.noteWidth, staffCalculator.noteHeight + staffCalculator.lineThickness * 4), juce::RectanglePlacement::Flags::xLeft, 1.0);
-            //}
-        } else
-            noteSvg->drawWithin(g, Rectangle<float>(noteX, noteDrawInfos[midiNote].y - staffCalculator.lineThickness*2, staffCalculator.noteWidth, staffCalculator.noteHeight+staffCalculator.lineThickness*4), juce::RectanglePlacement::Flags::xLeft, 1.0);
+        noteSvg->drawWithin(g, Rectangle<float>(noteX, noteDrawInfos[midiNote].y - staffCalculator.lineThickness*2, staffCalculator.noteWidth, staffCalculator.noteHeight+staffCalculator.lineThickness*4), juce::RectanglePlacement::Flags::xLeft, 1.0);
 
         for (int j=0; j<noteDrawInfos[midiNote].lineCount; j++)
         {

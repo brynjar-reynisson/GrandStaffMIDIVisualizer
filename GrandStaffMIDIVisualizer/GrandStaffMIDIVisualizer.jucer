@@ -30,6 +30,8 @@
       <FILE id="fXGw7b" name="Sharp.svg" compile="0" resource="1" file="../Sharp.svg"/>
       <FILE id="sevUhZ" name="Flat.svg" compile="0" resource="1" file="../Flat.svg"/>
     </GROUP>
+    <FILE id="hjjU2v" name="Inconsolata-Regular.ttf" compile="0" resource="1"
+          file="../Inconsolata-Regular.ttf"/>
   </MAINGROUP>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
