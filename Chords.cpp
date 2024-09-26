@@ -22,102 +22,227 @@
 */
 
 #include "MainComponent.h"
+#include <random>
 
-static std::map<String, String> truthMap =
+Chord::Chord(ChordPattern pattern, String rootNote, String bassNote)
 {
-	//2 notes
-	{ "100001000000", "4" },
-	{ "100000100000", "-tritone" },
-	{ "100000010000", "5" },
-	//3 notes
-	{ "100010010000", "" },
-	{ "100100010000", "m" },
-	{ "101000010000", "sus2" },
-	{ "101000100000", "sus2b5"},
-	{ "101100000000", "m-sus2"},
-	{ "100001010000", "sus4" },
-	{ "100100100000", "dim" },
-	{ "100010100000", "major b5"},
-	{ "100010001000", "+ (aug)"},
-	{ "100000010010", "57" },
-	//4 notes
-	{ "100010010100", "6" },
-	{ "100100010100", "m6" },
-	{ "100010010001", "maj7" },
-	{ "100010010010", "7" },
-	{ "100100010001", "m maj7" },
-	{ "100100010010", "m7" },
-	{ "100100100100", "dim7" },
-	{ "101010000010", "7add9" },
-	{ "100010100001", "maj7b9"},
-	{ "100010100010", "7b5" },
-	{ "100001010010", "7sus4" },
-	{ "101000010010", "7sus2" },
-	{ "101000010001", "maj7sus2" },
-	{ "100001010001", "maj7sus4" },
-	{ "100100100001", "maj7b5" },
-	{ "100010001001", "+maj7" },
-	{ "100010001010", "+7" },
-	{ "100100100010", "m7dim5" },
-	{ "101010010000", "9" },
-	{ "100110010000", "maj#9"},
-	{ "110010010000", "majb5" },
-	{ "101100010000", "m9" },
-	{ "100011010000", "11" },
-	{ "100010110000", "maj#11" },
-	{ "100101010000", "m11" },
-	{ "101001010000", "sus24" },
-	//5 notes
-	{ "101010010010", "7add9" },
-	{ "101010010001", "maj7add9" },
-	{ "100110010001", "maj7#9"},
-	{ "101100010010", "m7add9" },
-	{ "110100010010", "m7b9"},
-	{ "110010100010", "7b5b9" },
-	{ "101100010001", "m maj7 add 9"},
-	{ "100110010010", "7#9" },
-	{ "110010010010", "7b9" },
-	{ "110010010001", "maj7b9" },
-	{ "110100010001", "m maj7b9"},
-	{ "110010001001", "+ maj7b9" },
-	{ "110010001010", "+7b9" },
-	{ "100110001010", "7#5#9"},
-	{ "101010001010", "+7add9" },
-	{ "101100100010", "dim7add9" },
-	{ "110100100010", "dim7b9" },
-	{ "101100100100", "dim9" },
-	{ "110100100100", "dimb9"},
-	{ "101010010100", "6add9" },
-	{ "101001010001", "maj7sus24" },
-	{ "101001010010", "7sus24" },
-	{ "100010010110", "7/6" },
-	{ "100010110010", "7#11" },
-	{ "100010011010", "7b11" },
-	{ "100010110001", "maj7#11" },
-	{ "100100110010", "m7#11" },
-	{ "100001011010", "7sus b13" },
-	{ "101010001001", "+7add9" },
-	{ "100110001001", "+7#9" },
-	//6 notes
-	{ "101011010001", "11" },
-	{ "101101010010", "m11" },
-	{ "101101010001", "m maj11" },
-	{ "101010010110", "7/6sus2" },
-	{ "100110110001", "maj7#9#11" },
-	{ "110101100010", "m11b5b9" },
-	{ "110101010010", "m11b9" },
-	{ "101011010010", "7add11" },
-	//7 notes
-	{ "101011010110", "7/6sus4" },
-	//{ "101011010101", "maj7add13" },
-	{ "101101010110", "m7 add 13" },
-	{ "101101010101", "m maj13" }
+	this->pattern = pattern;
+	this->rootNote = rootNote;
+	this->bassNote = bassNote;
 };
 
-String Chords::name(std::set<int>& midiNotes, bool sharp, bool includeNoteNames)
+String Chord::name()
+{
+	String chordName = rootNote;
+	chordName += pattern.name;
+	if (bassNote.length() > 0)
+	{
+		chordName += "/";
+		chordName += bassNote;
+	}
+	return chordName;
+}
+
+Chords::Chords()
+{
+	std::vector<ChordPattern> patternList
+	{
+		//intervals
+		ChordPattern("100000100000", "tritone", Tritonic),
+		ChordPattern("100000010000", "5", Major),
+		//major
+		ChordPattern("100010010000", "", Major),
+		ChordPattern("100000010010", "57", Major),
+		ChordPattern("100010100000", "(b5)", Major),
+		ChordPattern("100010100010", "7(b5)", Major),
+		ChordPattern("101010100010", "9(b5)", Major),
+		ChordPattern("100010010100", "6", Major),
+		ChordPattern("100010011000", "(b6)", Major),
+		ChordPattern("101010010100", "69", Major),
+		ChordPattern("100010010010", "7", Major),
+		ChordPattern("100010010110", "7/6", Major),
+		ChordPattern("101010010010", "9", Major),
+		ChordPattern("110010100010", "7(b5,b9)", Major),
+		ChordPattern("101011010010", "11", Major),
+		ChordPattern("101010110010", "#11", Major),
+		ChordPattern("100010110010", "7(#11)", Major),
+		ChordPattern("100010011010", "7(b13)", Major),
+		ChordPattern("101011010110", "13", Major),
+		ChordPattern("100011010110", "13(no9)", Major),
+		ChordPattern("110010010010", "7(b9)", Major),
+		ChordPattern("100110010010", "7(#9)", Major),
+		ChordPattern("100110110010", "7(#9,#11)", Major),
+		ChordPattern("110011010010", "11(b9)", Major),
+		ChordPattern("110011010110", "13(b9)", Major),
+		ChordPattern("100010010001", "maj7", Major),
+		ChordPattern("100010100001", "maj7(b5)", Major),
+		ChordPattern("101010010001", "maj9", Major),
+		ChordPattern("101010110001", "maj9(#11)", Major),
+		ChordPattern("100110010001", "maj7(#9)", Major),
+		ChordPattern("110010010001", "maj7(b9)", Major),
+		ChordPattern("100010110001", "maj7(#11)", Major),
+		ChordPattern("100110110001", "maj7(#9,#11)", Major),
+		ChordPattern("101011010001", "maj11", Major),
+		ChordPattern("101011010101", "maj13", Major),
+		ChordPattern("101010010000", "add9", Major),
+		ChordPattern("100110010000", "add#9", Major),
+		ChordPattern("110010010000", "addb9", Major),
+		ChordPattern("100011010000", "add11", Major),
+		ChordPattern("100010110000", "add#11", Major),
+		//minor
+		ChordPattern("100100010000", "m", Minor),
+		ChordPattern("100100001000", "m(#5)", Minor),
+		ChordPattern("100100001010", "m7(#5)", Minor),
+		ChordPattern("100100010100", "m6", Minor),
+		ChordPattern("100100011000", "m(b6)", Minor),
+		ChordPattern("101100010100", "m69", Minor),
+		ChordPattern("100100010010", "m7", Minor),
+		ChordPattern("110100010010", "m7(b9)", Minor),
+		ChordPattern("100100110010", "m7(#11)", Minor),
+		ChordPattern("101100010010", "m9", Minor),
+		ChordPattern("101101010010", "m11", Minor),
+		ChordPattern("101101010110", "m13", Minor),
+		ChordPattern("110101010010", "m11(b9)", Minor),
+		ChordPattern("100100010001", "m(maj7)", Minor),
+		ChordPattern("101100010001", "m(maj9)", Minor),
+		ChordPattern("101101010001", "m(maj11)", Minor),
+		ChordPattern("101101010101", "m(maj13)", Minor),
+		ChordPattern("110100010001", "m(maj7)(b9)", Minor),
+		ChordPattern("101100010000", "m(add9)", Minor),
+		ChordPattern("100101010000", "m(add11)", Minor),
+		//augmented
+		ChordPattern("100010001000", "aug", Aug),
+		ChordPattern("100010001010", "aug7", Aug),
+		ChordPattern("101010001010", "aug9", Aug),
+		ChordPattern("110010001010", "aug7(b9)", Aug),
+		ChordPattern("100110001010", "aug7(#9)", Aug),
+		ChordPattern("100010001001", "aug(maj7)", Aug),
+		ChordPattern("101010001001", "aug(maj9)", Aug),
+		ChordPattern("110010001001", "aug(maj7)(b9)", Aug),
+		ChordPattern("100110001001", "aug(maj7)(#9)", Aug),
+		//diminished
+		ChordPattern("100100100000", "dim", Dim),
+		ChordPattern("100100100010", "m7(b5)", Dim),
+		ChordPattern("110100100010", "m7(b5,b9)", Dim),
+		ChordPattern("101100100010", "m9(b5)", Dim),
+		ChordPattern("100100100001", "m(maj7)(b5)", Dim),
+		ChordPattern("110101100010", "m11(b5,b9)", Dim),
+		ChordPattern("100100100100", "dim7", Dim),
+		ChordPattern("101100100100", "dim9", Dim),
+		ChordPattern("110100100100", "dim7(b9)", Dim),
+		//suspended 2nd
+		ChordPattern("101000010000", "sus2", Sus),
+		ChordPattern("101000010010", "7sus2", Sus),
+		ChordPattern("101000010110", "7/6sus2", Sus),
+		ChordPattern("101000010001", "maj7sus2", Sus),
+		ChordPattern("101000100000", "sus2(b5)", Sus),
+		//suspended 4th
+		ChordPattern("100001010000", "sus4", Sus),
+		ChordPattern("100001010010", "7sus4", Sus),
+		ChordPattern("100001010110", "7/6sus4", Sus),
+		ChordPattern("100001011010", "7sus4(b13)", Sus),
+		ChordPattern("100001010001", "maj7sus4", Sus),
+		ChordPattern("101001010010", "9sus4", Sus),
+		//suspended 2nd and 4th
+		ChordPattern("101001010000", "sus24", Sus),
+		ChordPattern("101001010001", "maj7sus24", Sus),
+		//major (no5)
+		ChordPattern("100010000000", "(no5)", Major),
+		ChordPattern("100010000100", "6(no5)", Major),
+		ChordPattern("101010000100", "69(no5)", Major),
+		ChordPattern("100010000010", "7(no5)", Major),
+		ChordPattern("100010000110", "7/6(no5)", Major),
+		ChordPattern("101010000010", "9(no5)", Major),
+		ChordPattern("101011000010", "11(no5)", Major),
+		ChordPattern("101011000110", "13(no5)", Major),
+		ChordPattern("100011000110", "13(no59)", Major),
+		ChordPattern("110010000010", "7(b9)(no5)", Major),
+		ChordPattern("100110000010", "7(#9)(no5)", Major),
+		ChordPattern("100110100010", "7(#9,#11)(no5)", Major),
+		ChordPattern("110011000010", "11(b9)(no5)", Major),
+		ChordPattern("110011000110", "13(b9)(no5)", Major),
+		ChordPattern("100010000001", "maj7(no5)", Major),
+		ChordPattern("101010000001", "maj9(no5)", Major),
+		ChordPattern("101010100001", "maj9(#11)(no5)", Major),
+		ChordPattern("100110000001", "maj7(#9)(no5)", Major),
+		ChordPattern("110010000001", "maj7(b9)(no5)", Major),
+		ChordPattern("100110100001", "maj7(#9,#11)(no5)", Major),
+		ChordPattern("101011000001", "maj11(no5)", Major),
+		ChordPattern("101011000101", "maj13(no5)", Major),
+		ChordPattern("101010000000", "add9(no5)", Major),
+		ChordPattern("100110000000", "add#9(no5)", Major),
+		ChordPattern("110010000000", "addb9(no5)", Major),
+		//minor (no5)
+		ChordPattern("100100000000", "m(no5)", Minor),
+		ChordPattern("100100000100", "m6(no5)", Minor),
+		ChordPattern("101100000100", "m69(no5)", Minor),
+		ChordPattern("100100000010", "m7(no5)", Minor),
+		ChordPattern("110100000010", "m7(b9)(no5)", Minor),
+		ChordPattern("101100000010", "m9(no5)", Minor),
+		ChordPattern("101101000010", "m11(no5)", Minor),
+		ChordPattern("101101000110", "m13(no5)", Minor),
+		ChordPattern("110101000010", "m11(b9)(no5)", Minor),
+		ChordPattern("100100000001", "m(maj7)(no5)", Minor),
+		ChordPattern("101100000001", "m(maj9)(no5)", Minor),
+		ChordPattern("101101000001", "m(maj11)(no5)", Minor),
+		ChordPattern("101101000101", "m(maj13)(no5)", Minor),
+		ChordPattern("110100000001", "m(maj7)(b9)(no5)", Minor),
+		ChordPattern("101100000000", "m(add9)(no5)", Minor),
+		ChordPattern("100101000000", "m(add11)(no5)", Minor),
+		//suspended 2nd (no 5)
+		ChordPattern("101000000000", "sus2(no5)", Sus),
+		ChordPattern("101000000010", "7sus2(no5)", Sus),
+		ChordPattern("101000000110", "7/6sus2(no5)", Sus),
+		ChordPattern("101000000001", "maj7sus2(no5)", Sus),
+		//suspended 2nd (no 5)
+		ChordPattern("100001000000", "sus4(no5)", Sus),
+		ChordPattern("100001000010", "7sus4(no5)", Sus),
+		ChordPattern("100001000110", "7/6sus4(no5)", Sus),
+		ChordPattern("100001001010", "7sus4(b13)(no5)", Sus),
+		ChordPattern("100001000001", "maj7sus4(no5)", Sus),
+		ChordPattern("101001000010", "9sus4(no5)", Sus),
+		//suspended 2nd and 4th (no 5)
+		ChordPattern("101001000000", "sus24(no5)", Sus),
+		ChordPattern("101001000001", "maj7sus24(no5)", Sus),
+		//EasterEgg
+		ChordPattern("111111111111", "-Easter Egg", EasterEgg)
+	};
+
+	for (ChordPattern pattern : patternList)
+	{
+		this->patterns.insert({ pattern.pattern, pattern });
+	}
+}
+
+
+static std::vector<String> easterEggs =
+{
+	" Madness!",
+	" You think this is a good idea?",
+	" Someone forgot their meds",
+	" Is the cat lying on the keyboard?",
+	" Take it easy!",
+	" Don't push me that hard!",
+	" Maybe try the trumpet...",
+	" Seriously?",
+	" How many hands?"
+};
+
+static 	std::random_device rand_dev;
+static std::mt19937 generator(rand_dev());
+static const int range_from = 0;
+static const int range_to = easterEggs.size() - 1;
+static std::uniform_int_distribution<int>  distr(range_from, range_to);
+
+static String randomEasterEgg()
+{
+	return easterEggs[distr(generator)];
+}
+
+void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
 {
 	if (midiNotes.size() < 2)
-		return "";
+		return;
 
 	String sharpSymbol = MidiMessage::getMidiNoteName(1, true, false, 3).substring(1);
 	String flatSymbol = MidiMessage::getMidiNoteName(1, false, false, 3).substring(1);
@@ -156,16 +281,26 @@ String Chords::name(std::set<int>& midiNotes, bool sharp, bool includeNoteNames)
 			chordMatcher += notes[innerIdx] ? "1" : "0";
 		}
 		//loop over truths to see if current matches
-		for (std::map<String, String>::iterator it = truthMap.begin(); it != truthMap.end(); ++it)
+		for (std::map<String, ChordPattern>::iterator it = patterns.begin(); it != patterns.end(); ++it)
 		{
 			if (it->first == chordMatcher)
 			{
-				chordName += MidiMessage::getMidiNoteName(curBassNote, sharp, false, 3);
-				chordName += it->second;
+				chord.pattern = it->second;
+				if (key.name == Key::SHARP)
+					chord.rootNote = MidiMessage::getMidiNoteName(curBassNote, true, false, 3);
+				else if(key.name == Key::FLAT)
+					chord.rootNote = MidiMessage::getMidiNoteName(curBassNote, false, false, 3);
+				else
+				{
+
+					ChordPattern chordPattern = it->second;
+					chord.rootNote = key.selectChordBaseNoteName(curBassNote, chordPattern.chordType);
+					//TODO, add midi notes to Chord once that's part of the signature
+				}
 				break;
 			}
 		}
-		if (chordName == "")
+		if (chord.rootNote == "")
 		{
 			//raise the cur bass note by 12 and try again
 			notes[curBassNote] = false;
@@ -173,49 +308,40 @@ String Chords::name(std::set<int>& midiNotes, bool sharp, bool includeNoteNames)
 				notes[curBassNote + 12] = true;
 			else
 			{
-				return chordName;
+				return;
 			}
 		}
 		else
 			break;
 	}
-	if (chordName == "")
-		return chordName;
+	if (chord.pattern.pattern.length() == 0)
+		return;
+
+	if (chord.pattern.chordType == EasterEgg)
+	{
+		chord.pattern.name = randomEasterEgg();
+	}
 
 	//see if the bass note is not the same as the chord base note
 	if (bassNote == curBassNote)
-		return chordName;
+		return;
 
-	chordName += "/";
-	chordName += MidiMessage::getMidiNoteName(bassNote, sharp, false, 3);
-
-	/*
-	int i = 0;
-	for (; i < 24; i++)
+	if (key.name == Key::SHARP)
+		chord.bassNote = MidiMessage::getMidiNoteName(bassNote, true, false, 3);
+	else if (key.name == Key::FLAT)
+		chord.bassNote = MidiMessage::getMidiNoteName(bassNote, false, false, 3);
+	else
 	{
-		if (notes[i])
+		//Some chords decide their own bass note name, others respect the key we're in
+		if (chordHasSuperPower(chord))
 		{
-			break;
+			bool sharp = isChordSharp(chord);
+			chord.bassNote = MidiMessage::getMidiNoteName(bassNote, sharp, false, 4);
+		}
+		else
+		{
+			chord.bassNote = MidiMessage::getMidiNoteName(bassNote, key.numSharps > 0, false, 4);
 		}
 	}
-	//i is the bass note
-	String chordMatcher = "";
-	for (; i < bassNote + 12; i++)
-	{
-		chordMatcher += notes[i] ? "1" : "0";
-	}
-
-	//loop over truths to see if current matches
-	for (std::map<String, String>::iterator it = truthMap.begin(); it != truthMap.end(); ++it)
-	{
-		if (it->first == chordMatcher)
-		{
-			chordName += MidiMessage::getMidiNoteName(bassNote, sharp, false, 3);
-			chordName += it->second;
-			return chordName;
-		}
-	}
-	*/
-
-	return chordName;
 }
+
