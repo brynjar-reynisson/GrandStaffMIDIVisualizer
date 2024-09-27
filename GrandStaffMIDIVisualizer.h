@@ -58,6 +58,8 @@
 #include "MainComponent.h"
 
 
+static String OCTAVES_ID = "octaves";
+
 //==============================================================================
 class GrandStaffMIDIVisualizerProcessor final : public AudioProcessor,
                                             private Timer
@@ -67,6 +69,9 @@ public:
         : AudioProcessor (getBusesLayout()),
         parameters(*this, nullptr, juce::Identifier("GrandStaffMIDIVisualizerParameters"),
             {
+                std::make_unique<juce::AudioParameterBool>("holdNotes",                       // parameterID
+                                                             "Hold Notes",                    // parameter name
+                                                             false),                          // default value
                 std::make_unique<juce::AudioParameterChoice>("key",
                     "Key",
                     StringArray {
@@ -76,10 +81,7 @@ public:
                     0
                 ),
 
-                std::make_unique<juce::AudioParameterBool>("holdNotes",                       // parameterID
-                                                             "Hold Notes",                    // parameter name
-                                                             false),                          // default value
-                std::make_unique<juce::AudioParameterInt>("octaves",                          // parameterID
+                std::make_unique<juce::AudioParameterInt>(OCTAVES_ID,                          // parameterID
                                                             "Octaves",                        // parameter name
                                                             -3,                               // min value
                                                             3,                                // max value
@@ -119,6 +121,19 @@ public:
         *octavesParameter = pluginModel.transposeOctaves;
         *chordPlacementParameter = pluginModel.chordPlacement;
         *chordFontBoldParameter = pluginModel.chordFontBold;
+
+        Value holdNotes = parameters.getParameterAsValue("holdNotes");
+        holdNotes = pluginModel.holdNotes;
+
+        Value octaves = parameters.getParameterAsValue(OCTAVES_ID);
+        octaves = pluginModel.transposeOctaves;
+
+        Value chordPlacement = parameters.getParameterAsValue("chordPlacement");
+        chordPlacement = pluginModel.chordPlacement;
+
+        Value chordFontBold = parameters.getParameterAsValue("chordFontBold");
+        chordFontBold = pluginModel.chordFontBold;
+
         pluginModel.hasUIChanges = false;
     }
 
@@ -201,11 +216,9 @@ public:
 
     void getStateInformation (MemoryBlock& destData) override
     {
-        //if (auto xmlState = state.createXml())
-        //    copyXmlToBinary(*xmlState, destData);
-
         auto paramState = parameters.copyState();
         std::unique_ptr<juce::XmlElement> xml(paramState.createXml());
+        String document = xml->createDocument("", false, false);
         copyXmlToBinary(*xml, destData);
     }
 
@@ -213,6 +226,7 @@ public:
     {
         if (auto xmlState = getXmlFromBinary(data, size))
         {
+            //String document = xmlState->createDocument("", false, false);
             state = ValueTree::fromXml(*xmlState);
             if (xmlState->hasTagName(parameters.state.getType()))
             {

@@ -9,6 +9,8 @@
               jucerFormatVersion="1">
   <MAINGROUP id="bMaV9S" name="GrandStaffMIDIVisualizer">
     <GROUP id="{0C99DFAA-E7F1-9A2E-0E53-E2048698FFA0}" name="Source">
+      <FILE id="hjjU2v" name="Inconsolata-Regular.ttf" compile="0" resource="1"
+            file="../Inconsolata-Regular.ttf"/>
       <FILE id="oiIA08" name="Grand_staff_02.svg" compile="0" resource="1"
             file="../Grand_staff_02.svg"/>
       <FILE id="ozFjKO" name="StaffCalculator.cpp" compile="1" resource="0"
@@ -30,8 +32,6 @@
       <FILE id="fXGw7b" name="Sharp.svg" compile="0" resource="1" file="../Sharp.svg"/>
       <FILE id="sevUhZ" name="Flat.svg" compile="0" resource="1" file="../Flat.svg"/>
     </GROUP>
-    <FILE id="hjjU2v" name="Inconsolata-Regular.ttf" compile="0" resource="1"
-          file="../Inconsolata-Regular.ttf"/>
   </MAINGROUP>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
