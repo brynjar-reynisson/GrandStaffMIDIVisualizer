@@ -56,9 +56,7 @@
 
 #include <iterator>
 #include "MainComponent.h"
-
-
-static String OCTAVES_ID = "octaves";
+#include "VSTParameters.h"
 
 //==============================================================================
 class GrandStaffMIDIVisualizerProcessor final : public AudioProcessor,
@@ -66,106 +64,24 @@ class GrandStaffMIDIVisualizerProcessor final : public AudioProcessor,
 {
 public:
     GrandStaffMIDIVisualizerProcessor()
-        : AudioProcessor (getBusesLayout()),
-        parameters(*this, nullptr, juce::Identifier("GrandStaffMIDIVisualizerParameters"),
-            {
-                std::make_unique<juce::AudioParameterBool>("holdNotes",                       // parameterID
-                                                             "Hold Notes",                    // parameter name
-                                                             false),                          // default value
-                std::make_unique<juce::AudioParameterChoice>("key",
-                    "Key",
-                    StringArray {
-                        "Sharp", "Flat",
-                        "C", "C#", "Db", "D", "Eb", "E", "F", "F#", "Gb", "G", "Ab", "A", "Bb", "B"
-                    },
-                    0
-                ),
-
-                std::make_unique<juce::AudioParameterInt>(OCTAVES_ID,                          // parameterID
-                                                            "Octaves",                        // parameter name
-                                                            -3,                               // min value
-                                                            3,                                // max value
-                                                            0),                               // default value
-                std::make_unique<juce::AudioParameterInt>("chordPlacement",                  // parameterID
-                                                             "Chords Placement",              // parameter name
-                                                             0,                               // min value
-                                                             2,                               // max value
-                                                             1),                              // default value
-                std::make_unique<juce::AudioParameterBool>("chordFontBold",                   // parameterID
-                                                             "Display chords with bold font", // parameter name
-                                                             false),                          // default value
-
-            })
+        : AudioProcessor(getBusesLayout()),
+        pluginModel { PluginModel() },
+        vstParameters(*this, pluginModel)
     {
-        state.addChild({ "uiState", { { "width",  500 }, { "height", 500 } }, {} }, -1, nullptr);
+        //state.addChild({ "uiState", { { "width",  500 }, { "height", 500 } }, {} }, -1, nullptr);
 
         for (int i = 0; i < 127; i++)
             pluginModel.midiNotes[i] = 0;
         editor = nullptr;
 
-        keyParameter = (AudioParameterChoice*)parameters.getParameter("key");
-        holdNotesParameter = parameters.getRawParameterValue("holdNotes");
-        octavesParameter = parameters.getRawParameterValue("octaves");
-        chordPlacementParameter = parameters.getRawParameterValue("chordPlacement");
-        chordFontBoldParameter = parameters.getRawParameterValue("chordFontBold");
 
-        pluginModel.onChange = [&] { pluginModelChanged(); };
+        
     }
 
     ~GrandStaffMIDIVisualizerProcessor() override {}
 
-    void pluginModelChanged()
-    {
-        *keyParameter = pluginModel.keyId;
-        *holdNotesParameter = pluginModel.holdNotes;
-        *octavesParameter = pluginModel.transposeOctaves;
-        *chordPlacementParameter = pluginModel.chordPlacement;
-        *chordFontBoldParameter = pluginModel.chordFontBold;
-
-        Value holdNotes = parameters.getParameterAsValue("holdNotes");
-        holdNotes = pluginModel.holdNotes;
-
-        Value octaves = parameters.getParameterAsValue(OCTAVES_ID);
-        octaves = pluginModel.transposeOctaves;
-
-        Value chordPlacement = parameters.getParameterAsValue("chordPlacement");
-        chordPlacement = pluginModel.chordPlacement;
-
-        Value chordFontBold = parameters.getParameterAsValue("chordFontBold");
-        chordFontBold = pluginModel.chordFontBold;
-
-        pluginModel.hasUIChanges = false;
-    }
-
     void processBlock (AudioBuffer<float>& audio,  MidiBuffer& midi) override 
     {
-        bool hasParamChanges = false;
-        if (!pluginModel.hasUIChanges)
-        {
-            bool newHoldNotesValue = *holdNotesParameter > 0.5 ? true : false;
-            bool newChordFontBoldValue = *chordFontBoldParameter > 0.5 ? true : false;
-            if ((int)*keyParameter != pluginModel.keyId && !pluginModel.hasUIChanges)
-            {
-                hasParamChanges = true;
-                pluginModel.keyId = (int)*keyParameter;
-            }
-            if ((int)*chordPlacementParameter != pluginModel.chordPlacement && !pluginModel.hasUIChanges)
-            {
-                hasParamChanges = true;
-                pluginModel.chordPlacement = (int)*chordPlacementParameter;
-            }
-            if (newHoldNotesValue != pluginModel.holdNotes)
-            {
-                hasParamChanges = true;
-                pluginModel.holdNotes = newHoldNotesValue;
-            }
-            if ((int)*octavesParameter != pluginModel.transposeOctaves)
-            {
-                hasParamChanges = true;
-                pluginModel.transposeOctaves = (int)*octavesParameter;
-            }
-        }
-
         audio.clear();
         bool hasMidiChanges = false;
         for (const MidiMessageMetadata metadata : midi)
@@ -187,9 +103,8 @@ public:
                 hasMidiChanges = true;
             }
         }
-        if (hasParamChanges)
-            pluginModel.hasParamChanges = true;
-        if ((hasMidiChanges || hasParamChanges) && editor != nullptr)
+
+        if ((hasMidiChanges || pluginModel.hasParamChanges) && editor != nullptr)
         {
             editor->postCommandMessage(1);
         }
@@ -216,40 +131,12 @@ public:
 
     void getStateInformation (MemoryBlock& destData) override
     {
-        auto paramState = parameters.copyState();
-        std::unique_ptr<juce::XmlElement> xml(paramState.createXml());
-        String document = xml->createDocument("", false, false);
-        copyXmlToBinary(*xml, destData);
+        vstParameters.getStateInformation(destData);
     }
 
     void setStateInformation (const void* data, int size) override
     {
-        if (auto xmlState = getXmlFromBinary(data, size))
-        {
-            //String document = xmlState->createDocument("", false, false);
-            state = ValueTree::fromXml(*xmlState);
-            if (xmlState->hasTagName(parameters.state.getType()))
-            {
-                parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
-                pluginModel.keyId = (int)*keyParameter;
-                pluginModel.holdNotes = *holdNotesParameter > 0.5 ? true : false;
-                pluginModel.transposeOctaves = (int)*octavesParameter;
-                pluginModel.chordPlacement = (int)*chordPlacementParameter;
-                pluginModel.chordFontBold = *chordFontBoldParameter > 0.5 ? true : false;
-                pluginModel.hasParamChanges = true;
-
-                /*
-                pluginModel.keyId = (int)xmlState->getIntAttribute("key");
-                pluginModel.holdNotes = (bool)xmlState->getBoolAttribute("holdNotes", false);
-                pluginModel.transposeOctaves = (int)xmlState->getIntAttribute("octaves", 0);
-                pluginModel.chordPlacement = (int)xmlState->getIntAttribute("chordPlacement", false);
-                pluginModel.chordFontBold = (bool)xmlState->getBoolAttribute("chordFontBold", false);
-                */
-                if (editor != nullptr)
-                    editor->postCommandMessage(1);
-
-            }
-        }
+        vstParameters.setStateInformation(data, size);
     }
 
 private:
@@ -287,7 +174,7 @@ private:
         void resized() override
         {
             auto bounds = getLocalBounds();
-            mainComponent.setBounds(bounds.getX() + 2, bounds.getY() + 2, bounds.getWidth() - 4, bounds.getHeight() - 4);
+            mainComponent.setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
 
             lastUIWidth  = getWidth();
             lastUIHeight = getHeight();
@@ -329,15 +216,10 @@ private:
              : BusesProperties();
     }
 
-    ValueTree state { "state" };
+    //ValueTree state { "state" };
 
-    juce::AudioProcessorValueTreeState parameters;
-    AudioParameterChoice* keyParameter;
-    std::atomic<float>* holdNotesParameter = nullptr;
-    std::atomic<float>* octavesParameter = nullptr;
-    std::atomic<float>* chordPlacementParameter = nullptr;
-    std::atomic<float>* chordFontBoldParameter = nullptr;
     PluginModel pluginModel;
+    VSTParameters vstParameters;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GrandStaffMIDIVisualizerProcessor)
 };

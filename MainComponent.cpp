@@ -36,6 +36,7 @@ static const Font getCustomFont(bool bold = 1)
 void MainComponent::init(PluginModel* model)
 {
     this->pluginModel = model;
+    pluginModel->paramChangedFromHost = [&] { onParametersChanged(); };
 
     holdNoteButton.addListener(this);
     holdNoteButton.setImages(noteSvg.get());
@@ -177,7 +178,7 @@ void MainComponent::buttonClicked(juce::Button* button)
         pluginModel->chordFontBold = chordFontBoldButton.getToggleState();
     }
 
-    NullCheckedInvocation::invoke(pluginModel->onChange);
+    NullCheckedInvocation::invoke(pluginModel->paramChangedFromUI);
     repaint();
 }
 
@@ -460,7 +461,7 @@ void MainComponent::keyMenuChanged()
 {  
     pluginModel->hasUIChanges = true;
     pluginModel->keyId = keyMenu.getSelectedId() - 1;
-    pluginModel->onChange();
+    NullCheckedInvocation::invoke(pluginModel->paramChangedFromUI);
     repaint();
 }
 

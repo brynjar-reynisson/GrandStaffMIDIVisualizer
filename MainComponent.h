@@ -164,7 +164,8 @@ public:
     bool hasParamChanges = false;
     bool hasUIChanges = false;
 
-    std::function<void()> onChange;
+    std::function<void()> paramChangedFromUI;
+    std::function<void()> paramChangedFromHost;
 };
 
 //==============================================================================
@@ -230,6 +231,10 @@ public:
         holdNoteButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
     {
         init(model);
+    }
+    ~MainComponent()
+    {
+        pluginModel->paramChangedFromHost = nullptr;
     }
     void paint(Graphics& g) override;
     void resized() override;
