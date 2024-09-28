@@ -33,6 +33,16 @@ static const Font getCustomFont(bool bold = 1)
         return Font(Typeface::createSystemTypefaceFor(BinaryData::InconsolataRegular_ttf, BinaryData::InconsolataRegular_ttfSize));
 }
 
+void MainComponent::onParametersChanged()
+{
+    keyMenu.setSelectedId(pluginModel->keyId + 1, false);
+    holdNoteButton.setToggleState(pluginModel->holdNotes, false);
+    octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
+    updateChordPlacementButton();
+    chordFontBoldButton.setToggleState(pluginModel->chordFontBold, false);
+    pluginModel->hasParamChanges = false;
+}
+
 void MainComponent::init(PluginModel* model)
 {
     this->pluginModel = model;
@@ -93,15 +103,6 @@ void MainComponent::init(PluginModel* model)
     addAndMakeVisible(chordFontBoldButton);
 }
 
-void MainComponent::onParametersChanged()
-{
-    keyMenu.setSelectedId(pluginModel->keyId + 1, false);
-    holdNoteButton.setToggleState(pluginModel->holdNotes, false);
-    octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
-    updateChordPlacementButton();
-    chordFontBoldButton.setToggleState(pluginModel->chordFontBold, false);
-    pluginModel->hasParamChanges = false;
-}
 
 void MainComponent::updateChordPlacementButton()
 {
@@ -360,9 +361,9 @@ void MainComponent::paint(Graphics& g)
             if (pluginModel->chordPlacement > 0)
             {
                 Rectangle<int> localBounds = getLocalBounds();
-                float textWidth = pluginModel->chordPlacement ?
+                float textWidth = pluginModel->chordPlacement == 2 ?
                     localBounds.getWidth() - baseNoteX - staffCalculator.noteWidth * 3 :
-                    localBounds.getWidth() - localBounds.getHeight() * 0.05 - staffCalculator.lineThickness * 2;
+                    localBounds.getWidth() - localBounds.getWidth() * 0.05 - staffCalculator.lineThickness * 2;
                 float textHeight = pluginModel->chordPlacement == 2 ?
                     textWidth / 7.5f :
                     localBounds.getHeight() * 0.1;
