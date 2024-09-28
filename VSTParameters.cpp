@@ -99,7 +99,13 @@ void VSTParameters::pluginModelChangedFromUI()
     Value chordFontBold = parameters.getParameterAsValue(CHORD_FONT_BOLD);
     chordFontBold = pluginModel.chordFontBold;
 
-    //TODO, suggestions from JUCE forum
+    //TODO, complete suggestion from JUCE forum for all params
+    /*
+    auto* param = parameters.getParameter(OCTAVES);
+    param->beginChangeGesture();
+    param->setValueNotifyingHost(pluginModel.transposeOctaves);
+    param->endChangeGesture();
+    */
 
     pluginModel.hasUIChanges = false;
 }
