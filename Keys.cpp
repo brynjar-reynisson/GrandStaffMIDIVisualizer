@@ -23,8 +23,6 @@
 
 #include "MainComponent.h"
 
-std::vector<String> keyNames;
-
 bool Key::hasNote(String& noteName)
 {
 	for (String curNote : notes)

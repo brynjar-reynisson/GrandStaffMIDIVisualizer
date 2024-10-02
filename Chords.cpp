@@ -52,36 +52,39 @@ Chords::Chords()
 		ChordPattern("100000010000", "5", Major),
 		//major
 		ChordPattern("100010010000", "", Major),
-		ChordPattern("100000010010", "57", Major),
-		ChordPattern("100010100000", "(b5)", Major),
-		ChordPattern("100010100010", "7(b5)", Major),
-		ChordPattern("101010100010", "9(b5)", Major),
-		ChordPattern("100010010100", "6", Major),
-		ChordPattern("100010011000", "(b6)", Major),
-		ChordPattern("101010010100", "69", Major),
 		ChordPattern("100010010010", "7", Major),
-		ChordPattern("100010010110", "7/6", Major),
+		ChordPattern("100000010010", "7(no3)", Major),
 		ChordPattern("101010010010", "9", Major),
-		ChordPattern("110010100010", "7(b5,b9)", Major),
-		ChordPattern("101011010010", "11", Major),
-		ChordPattern("101010110010", "#11", Major),
-		ChordPattern("100010110010", "7(#11)", Major),
-		ChordPattern("100010011010", "7(b13)", Major),
-		ChordPattern("101011010110", "13", Major),
-		ChordPattern("100011010110", "13(no9)", Major),
 		ChordPattern("110010010010", "7(b9)", Major),
 		ChordPattern("100110010010", "7(#9)", Major),
-		ChordPattern("100110110010", "7(#9,#11)", Major),
+		ChordPattern("101011010010", "11", Major),
 		ChordPattern("110011010010", "11(b9)", Major),
+		ChordPattern("100111010010", "11(#9)", Major),
+		ChordPattern("101010110010", "(#11)", Major),
+		ChordPattern("100011010010", "7(add11)", Major),
+		ChordPattern("100010110010", "7(add#11)", Major),
+		ChordPattern("110010110010", "7(b9,#11)", Major),
+		ChordPattern("100110110010", "7(#9,#11)", Major),
+		ChordPattern("101011010110", "13", Major),
+		ChordPattern("100010011010", "7(addb13)", Major),
 		ChordPattern("110011010110", "13(b9)", Major),
+		ChordPattern("110010110110", "13(b9,#11)", Major),
+		ChordPattern("100111010110", "13(#9)", Major),
+		ChordPattern("100110110110", "13(#9,#11)", Major),
+		ChordPattern("101010110110", "13(#11)", Major),
+		ChordPattern("100011010110", "13(no9)", Major),
+		ChordPattern("101011011010", "(b13)", Major),
 		ChordPattern("100010010001", "maj7", Major),
+		ChordPattern("100000010001", "maj7(no3)", Major),
 		ChordPattern("100010100001", "maj7(b5)", Major),
 		ChordPattern("101010010001", "maj9", Major),
-		ChordPattern("101010110001", "maj9(#11)", Major),
+		ChordPattern("101010100001", "maj9(b5)", Major),
 		ChordPattern("100110010001", "maj7(#9)", Major),
-		ChordPattern("110010010001", "maj7(b9)", Major),
-		ChordPattern("100010110001", "maj7(#11)", Major),
 		ChordPattern("100110110001", "maj7(#9,#11)", Major),
+		ChordPattern("110010010001", "maj7(b9)", Major),
+		ChordPattern("110010110001", "maj7(b9,#11)", Major),
+		ChordPattern("100010110001", "maj7(#11)", Major),
+		ChordPattern("101010110001", "maj9(#11)", Major),
 		ChordPattern("101011010001", "maj11", Major),
 		ChordPattern("101011010101", "maj13", Major),
 		ChordPattern("101010010000", "add9", Major),
@@ -89,31 +92,62 @@ Chords::Chords()
 		ChordPattern("110010010000", "addb9", Major),
 		ChordPattern("100011010000", "add11", Major),
 		ChordPattern("100010110000", "add#11", Major),
+		ChordPattern("100010100000", "(b5)", Major),
+		ChordPattern("100010100010", "7(b5)", Major),
+		ChordPattern("101010100010", "9(b5)", Major),
+		ChordPattern("110010100010", "7(b5,b9)", Major),
+		ChordPattern("100110100010", "7(b5,#9)", Major),
+		ChordPattern("100010010100", "6", Major),
+		ChordPattern("100010010110", "7/6", Major),
+		ChordPattern("100010010101", "maj7(6)", Major),
+		ChordPattern("101010010100", "6/9", Major),
+		ChordPattern("110010010100", "6(b9)", Major),
+		ChordPattern("110011010100", "6(b9,11)", Major),
+		ChordPattern("110010110100", "6(b9,#11)", Major),
+		ChordPattern("100110010100", "6(#9)", Major),
+		ChordPattern("100111010100", "6(#9,11)", Major),
+		ChordPattern("100110110100", "6(#9,#11)", Major),
+		ChordPattern("100011010100", "6(add11)", Major),
+		ChordPattern("100010110100", "6(add#11)", Major),
+		ChordPattern("100010011100", "6(addb13)", Major),
+		ChordPattern("100010011000", "(b6)", Major),
+		ChordPattern("110010011000", "(b6,b9)", Major),
+		ChordPattern("100110011000", "(b6,#9)", Major),
+		ChordPattern("110011011000", "(b6,b9,11)", Major),
+		ChordPattern("110010111000", "(b6,b9,#11)", Major),
 		//minor
 		ChordPattern("100100010000", "m", Minor),
 		ChordPattern("100100001000", "m(#5)", Minor),
 		ChordPattern("100100001010", "m7(#5)", Minor),
 		ChordPattern("100100010100", "m6", Minor),
 		ChordPattern("100100011000", "m(b6)", Minor),
-		ChordPattern("101100010100", "m69", Minor),
+		ChordPattern("101100010100", "m6/9", Minor),
 		ChordPattern("100100010010", "m7", Minor),
 		ChordPattern("110100010010", "m7(b9)", Minor),
-		ChordPattern("100100110010", "m7(#11)", Minor),
+		ChordPattern("110110010010", "m7(b9,b11)", Minor),
+		ChordPattern("110100110010", "m7(b9,#11)", Minor),
+		ChordPattern("100100110010", "m7(add#11)", Minor),
+		ChordPattern("100100011010", "m7(addb13)", Minor),
 		ChordPattern("101100010010", "m9", Minor),
+		ChordPattern("101110010010", "m9(b11)", Minor),
+		ChordPattern("101100110010", "m9(#11)", Minor),
 		ChordPattern("101101010010", "m11", Minor),
-		ChordPattern("101101010110", "m13", Minor),
 		ChordPattern("110101010010", "m11(b9)", Minor),
+		ChordPattern("101101011010", "m11(b13)", Minor),
+		ChordPattern("101101010110", "m13", Minor),
 		ChordPattern("100100010001", "m(maj7)", Minor),
 		ChordPattern("101100010001", "m(maj9)", Minor),
+		ChordPattern("110100010001", "m(maj7)(b9)", Minor),
 		ChordPattern("101101010001", "m(maj11)", Minor),
 		ChordPattern("101101010101", "m(maj13)", Minor),
-		ChordPattern("110100010001", "m(maj7)(b9)", Minor),
 		ChordPattern("101100010000", "m(add9)", Minor),
 		ChordPattern("100101010000", "m(add11)", Minor),
 		//augmented
 		ChordPattern("100010001000", "aug", Aug),
 		ChordPattern("100010001010", "aug7", Aug),
+		ChordPattern("100000001010", "aug7(no3)", Aug),
 		ChordPattern("101010001010", "aug9", Aug),
+		ChordPattern("101000001010", "aug9(no3)", Aug),
 		ChordPattern("110010001010", "aug7(b9)", Aug),
 		ChordPattern("100110001010", "aug7(#9)", Aug),
 		ChordPattern("100010001001", "aug(maj7)", Aug),
@@ -155,15 +189,14 @@ Chords::Chords()
 		ChordPattern("101010000010", "9(no5)", Major),
 		ChordPattern("101011000010", "11(no5)", Major),
 		ChordPattern("101011000110", "13(no5)", Major),
-		ChordPattern("100011000110", "13(no59)", Major),
+		ChordPattern("101010100110", "13(#11)(no5)", Major),
+		ChordPattern("100011000110", "13(no5,9)", Major),
 		ChordPattern("110010000010", "7(b9)(no5)", Major),
 		ChordPattern("100110000010", "7(#9)(no5)", Major),
-		ChordPattern("100110100010", "7(#9,#11)(no5)", Major),
 		ChordPattern("110011000010", "11(b9)(no5)", Major),
 		ChordPattern("110011000110", "13(b9)(no5)", Major),
 		ChordPattern("100010000001", "maj7(no5)", Major),
 		ChordPattern("101010000001", "maj9(no5)", Major),
-		ChordPattern("101010100001", "maj9(#11)(no5)", Major),
 		ChordPattern("100110000001", "maj7(#9)(no5)", Major),
 		ChordPattern("110010000001", "maj7(b9)(no5)", Major),
 		ChordPattern("100110100001", "maj7(#9,#11)(no5)", Major),
@@ -189,23 +222,23 @@ Chords::Chords()
 		ChordPattern("110100000001", "m(maj7)(b9)(no5)", Minor),
 		ChordPattern("101100000000", "m(add9)(no5)", Minor),
 		ChordPattern("100101000000", "m(add11)(no5)", Minor),
-		//suspended 2nd (no 5)
+		//suspended 2nd (no5
 		ChordPattern("101000000000", "sus2(no5)", Sus),
 		ChordPattern("101000000010", "7sus2(no5)", Sus),
 		ChordPattern("101000000110", "7/6sus2(no5)", Sus),
 		ChordPattern("101000000001", "maj7sus2(no5)", Sus),
-		//suspended 2nd (no 5)
+		//suspended 4th (no5)
 		ChordPattern("100001000000", "sus4(no5)", Sus),
 		ChordPattern("100001000010", "7sus4(no5)", Sus),
 		ChordPattern("100001000110", "7/6sus4(no5)", Sus),
 		ChordPattern("100001001010", "7sus4(b13)(no5)", Sus),
 		ChordPattern("100001000001", "maj7sus4(no5)", Sus),
 		ChordPattern("101001000010", "9sus4(no5)", Sus),
-		//suspended 2nd and 4th (no 5)
+		//suspended 2nd and 4th (no5)
 		ChordPattern("101001000000", "sus24(no5)", Sus),
 		ChordPattern("101001000001", "maj7sus24(no5)", Sus),
 		//EasterEgg
-		ChordPattern("111111111111", "-Easter Egg", EasterEgg)
+		ChordPattern("111111111111", "-Easter-Egg", EasterEgg)
 	};
 
 	for (ChordPattern pattern : patternList)
@@ -239,10 +272,16 @@ static String randomEasterEgg()
 	return easterEggs[distr(generator)];
 }
 
+static ChordType lastChordType = None;
+static String lastEasterEggName = "";
+
 void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
 {
 	if (midiNotes.size() < 2)
+	{
+		lastChordType = None;
 		return;
+	}
 
 	String sharpSymbol = MidiMessage::getMidiNoteName(1, true, false, 3).substring(1);
 	String flatSymbol = MidiMessage::getMidiNoteName(1, false, false, 3).substring(1);
@@ -300,7 +339,7 @@ void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
 				break;
 			}
 		}
-		if (chord.rootNote == "")
+		if (chord.rootNote == "" && midiNotes.size() > 2) //we don't want to find bass notes for 2 note chords
 		{
 			//raise the cur bass note by 12 and try again
 			notes[curBassNote] = false;
@@ -319,8 +358,15 @@ void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
 
 	if (chord.pattern.chordType == EasterEgg)
 	{
-		chord.pattern.name = randomEasterEgg();
+		if (lastChordType != EasterEgg)
+		{
+			lastEasterEggName = randomEasterEgg();
+			
+		}
+		chord.pattern.name = lastEasterEggName;		
 	}
+	
+	lastChordType = chord.pattern.chordType;
 
 	//see if the bass note is not the same as the chord base note
 	if (bassNote == curBassNote)

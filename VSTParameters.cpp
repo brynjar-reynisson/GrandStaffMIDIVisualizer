@@ -63,15 +63,15 @@ VSTParameters::~VSTParameters()
 
 void VSTParameters::parameterChanged(const String& parameterID, float newValue)
 {
-    if (parameterID == KEY)
+    if (parameterID == KEY.getCharPointer())
         pluginModel.keyId = (int)*keyParameter;
-    else if (parameterID == HOLD_NOTES)
+    else if (parameterID == HOLD_NOTES.getCharPointer())
         pluginModel.holdNotes = *holdNotesParameter > 0.5;
-    else if (parameterID == OCTAVES)
+    else if (parameterID == OCTAVES.getCharPointer())
         pluginModel.transposeOctaves = (int)*octavesParameter;
-    else if (parameterID == CHORD_PLACEMENT)
+    else if (parameterID == CHORD_PLACEMENT.getCharPointer())
         pluginModel.chordPlacement = (int)*chordPlacementParameter;
-    else if (parameterID == CHORD_FONT_BOLD)
+    else if (parameterID == CHORD_FONT_BOLD.getCharPointer())
         pluginModel.chordFontBold = *chordFontBoldParameter > 0.5;
 
     pluginModel.hasParamChanges;
@@ -110,9 +110,32 @@ void VSTParameters::pluginModelChangedFromUI()
     pluginModel.hasUIChanges = false;
 }
 
+static juce::Identifier oldUiState("uiState");
+static juce::Identifier UIState("UIState");
+
 void VSTParameters::getStateInformation(MemoryBlock& destData)
 {
+    ValueTree uiState{ UIState, { { "width",  pluginModel.uiWidth }, { "height", pluginModel.uiHeight } }, {} };
+    //uiState.addChild({ UIState, { { "width",  pluginModel.uiWidth }, { "height", pluginModel.uiHeight } }, {} }, -1, nullptr);
+    
     auto paramState = parameters.copyState();
+
+    //Remove all previous UIState xml elements
+    std::vector<int> childrenToRemove;
+    for (int idx = paramState.getNumChildren() - 1; idx > -1; idx--)
+    {
+        ValueTree child = paramState.getChild(idx);
+        if (child.getType() == oldUiState || child.getType() == UIState)
+        {
+            childrenToRemove.push_back(idx);
+        }
+    }
+    for (int idx = 0; idx < childrenToRemove.size(); idx++)
+    {
+        paramState.removeChild(childrenToRemove[idx], nullptr);
+    }
+
+    paramState.appendChild(uiState, nullptr);
     std::unique_ptr<juce::XmlElement> xml(paramState.createXml());
     String document = xml->createDocument("", false, false);
     processor.copyXmlToBinary(*xml, destData);
@@ -122,7 +145,7 @@ void VSTParameters::setStateInformation(const void* data, int size)
 {
     if (auto xmlState = processor.getXmlFromBinary(data, size))
     {
-        //String document = xmlState->createDocument("", false, false);
+        String document = xmlState->createDocument("", false, false);
         if (xmlState->hasTagName(parameters.state.getType()))
         {
             parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
@@ -132,6 +155,20 @@ void VSTParameters::setStateInformation(const void* data, int size)
             pluginModel.chordPlacement = (int)*chordPlacementParameter;
             pluginModel.chordFontBold = *chordFontBoldParameter > 0.5 ? true : false;
             pluginModel.hasParamChanges = true;
+
+            //check if xmlState has UIState
+            XmlElement* uiStateXml = xmlState->getChildByName(UIState);
+            if (uiStateXml != nullptr)
+            {
+                pluginModel.uiWidth = uiStateXml->getAttributeValue(0).getIntValue();
+                pluginModel.uiHeight = uiStateXml->getAttributeValue(1).getIntValue();
+            }
+
+            parameters.getParameter(KEY)->setValueNotifyingHost(*keyParameter);
+            parameters.getParameter(HOLD_NOTES)->setValueNotifyingHost(*holdNotesParameter);
+            parameters.getParameter(OCTAVES)->setValueNotifyingHost(*octavesParameter);
+            parameters.getParameter(CHORD_PLACEMENT)->setValueNotifyingHost(*chordPlacementParameter);
+            parameters.getParameter(CHORD_FONT_BOLD)->setValueNotifyingHost(*chordFontBoldParameter);
         }
     }
 }

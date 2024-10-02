@@ -126,18 +126,20 @@ void MainComponent::updateChordPlacementButton()
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
+    pluginModel->uiWidth = bounds.getWidth();
+    pluginModel->uiHeight = bounds.getHeight();
 
-    int size = bounds.getHeight() / 20;
-    int buttonSpace = size / 10;
-    keyMenu.setBounds(buttonSpace, 0, size * 4, size);
+    int buttonSize = bounds.getHeight() / 20;
+    int buttonSpace = buttonSize / 10;
+    keyMenu.setBounds(buttonSpace, 0, buttonSize * 4, buttonSize);
 
-    holdNoteButton.setBounds(bounds.getWidth() - size * 5 - buttonSpace, 0, size, size);
-    leftArrowButton.setBounds(bounds.getWidth() - size * 4, 0, size, size);
-    octaveLabel.setBounds(bounds.getWidth() - size * 3, 0, size * 2, size);
-    rightArrowButton.setBounds(bounds.getWidth() - size, 0, size, size);
+    holdNoteButton.setBounds(bounds.getWidth() - buttonSize * 5.5 - buttonSpace * 2, 0, buttonSize * 1.1, buttonSize);
+    leftArrowButton.setBounds(bounds.getWidth() - buttonSize * 4.4 - buttonSpace, 0, buttonSize * 1.1, buttonSize);
+    octaveLabel.setBounds(bounds.getWidth() - buttonSize * 3.3 - buttonSpace, 0, buttonSize * 2.2, buttonSize);
+    rightArrowButton.setBounds(bounds.getWidth() - buttonSize * 1.1 - buttonSpace, 0, buttonSize * 1.1, buttonSize);
 
-    chordPlacementButton.setBounds(buttonSpace, bounds.getHeight() - size - buttonSpace, size * 1.1, size);
-    chordFontBoldButton.setBounds(size * 1.1 + buttonSpace * 2, bounds.getHeight() - size - buttonSpace, size * 1.1, size);
+    chordPlacementButton.setBounds(buttonSpace, bounds.getHeight() - buttonSize - buttonSpace, buttonSize * 1.1, buttonSize);
+    chordFontBoldButton.setBounds(buttonSize * 1.1 + buttonSpace * 2, bounds.getHeight() - buttonSize - buttonSpace, buttonSize * 1.1, buttonSize);
 }
 
 void MainComponent::buttonClicked(juce::Button* button)
@@ -465,4 +467,3 @@ void MainComponent::keyMenuChanged()
     NullCheckedInvocation::invoke(pluginModel->paramChangedFromUI);
     repaint();
 }
-

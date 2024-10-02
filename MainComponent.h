@@ -115,6 +115,7 @@ private:
     void addKey(String name, std::list<String>& notes, int numSharps, int numFlats);
     void applyAnchorNoteAndAccentsUsingChordKey(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo);
     std::map<String, Key> keys;
+    std::vector<String> keyNames;
 };
 //==============================================================================
 class Chords
@@ -163,6 +164,8 @@ public:
     bool chordFontBold = false;
     bool hasParamChanges = false;
     bool hasUIChanges = false;
+    int uiWidth = -1;
+    int uiHeight = -1;
 
     std::function<void()> paramChangedFromUI;
     std::function<void()> paramChangedFromHost;

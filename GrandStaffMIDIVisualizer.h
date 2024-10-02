@@ -150,14 +150,19 @@ private:
             mainComponent(&ownerIn.pluginModel)
         {
             setResizable (true, true);
+            if (owner.pluginModel.uiWidth > 0 && owner.pluginModel.uiHeight > 0)
+                setSize(owner.pluginModel.uiWidth, owner.pluginModel.uiHeight);
+            else
+                setSize(500, 500);
+
             //lastUIWidth.referTo(owner.state.getChildWithName("uiState").getPropertyAsValue("width", nullptr));
             //lastUIHeight.referTo(owner.state.getChildWithName("uiState").getPropertyAsValue("height", nullptr));
             //setSize(lastUIWidth.getValue(), lastUIHeight.getValue());
-            setSize(500, 500);
 
             //lastUIWidth.addListener(this);
             //lastUIHeight.addListener(this);
 
+            setConstrainer(&constrainer);
             addAndMakeVisible(mainComponent);
         }
 
@@ -174,6 +179,9 @@ private:
         void resized() override
         {
             auto bounds = getLocalBounds();
+            constrainer.setMinimumWidth(std::max((int)(bounds.getHeight() * 0.85), 230 ));
+            constrainer.setMinimumHeight(260);
+
             mainComponent.setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
 
             lastUIWidth  = getWidth();
@@ -197,6 +205,7 @@ private:
 
         GrandStaffMIDIVisualizerProcessor& owner;
         MainComponent mainComponent;
+        ComponentBoundsConstrainer constrainer;
 
         Value lastUIWidth, lastUIHeight;
     };
