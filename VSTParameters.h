@@ -31,6 +31,7 @@ static String HOLD_NOTES = "holdNotes";
 static String OCTAVES = "octaves";
 static String CHORD_PLACEMENT = "chordPlacement";
 static String CHORD_FONT_BOLD = "chordFontBold";
+static String DARK_MODE = "darkMode";
 
 class VSTParameters : AudioProcessorValueTreeState::Listener
 {
@@ -53,6 +54,6 @@ private:
 	std::atomic<float>* octavesParameter = nullptr;
 	std::atomic<float>* chordPlacementParameter = nullptr;
 	std::atomic<float>* chordFontBoldParameter = nullptr;
-
+	std::atomic<float>* darkModeParameter = nullptr;
 
 };

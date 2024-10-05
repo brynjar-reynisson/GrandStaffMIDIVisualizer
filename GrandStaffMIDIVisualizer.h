@@ -68,14 +68,9 @@ public:
         pluginModel { PluginModel() },
         vstParameters(*this, pluginModel)
     {
-        //state.addChild({ "uiState", { { "width",  500 }, { "height", 500 } }, {} }, -1, nullptr);
-
         for (int i = 0; i < 127; i++)
             pluginModel.midiNotes[i] = 0;
-        editor = nullptr;
-
-
-        
+        editor = nullptr;        
     }
 
     ~GrandStaffMIDIVisualizerProcessor() override {}
@@ -104,9 +99,9 @@ public:
             }
         }
 
-        if ((hasMidiChanges || pluginModel.hasParamChanges) && editor != nullptr)
+        if (hasMidiChanges && editor != nullptr)
         {
-            editor->postCommandMessage(1);
+            editor->postCommandMessage(CMD_MSG_MIDI_CHANGES);
         }
     }
 
@@ -155,13 +150,6 @@ private:
             else
                 setSize(500, 500);
 
-            //lastUIWidth.referTo(owner.state.getChildWithName("uiState").getPropertyAsValue("width", nullptr));
-            //lastUIHeight.referTo(owner.state.getChildWithName("uiState").getPropertyAsValue("height", nullptr));
-            //setSize(lastUIWidth.getValue(), lastUIHeight.getValue());
-
-            //lastUIWidth.addListener(this);
-            //lastUIHeight.addListener(this);
-
             setConstrainer(&constrainer);
             addAndMakeVisible(mainComponent);
         }
@@ -173,17 +161,25 @@ private:
 
         void paint (Graphics& g) override
         {
-            g.fillAll (Colours::white);
+            g.fillAll (owner.pluginModel.darkMode ? darkModeBackgroundColour : Colours::white);
         }
 
         void resized() override
         {
             auto bounds = getLocalBounds();
-            constrainer.setMinimumWidth(std::max((int)(bounds.getHeight() * 0.85), 230 ));
+            
             if (owner.pluginModel.chordPlacement != 3)
+            {
+                constrainer.setMinimumWidth(std::max((int)(bounds.getHeight() * 0.85), 230));
                 constrainer.setMinimumHeight(260);
+                constrainer.setMaximumHeight(5000);
+            }
             else
+            {
+                constrainer.setMinimumWidth(130);
                 constrainer.setMinimumHeight(100);
+                constrainer.setMaximumHeight(bounds.getWidth() * 2);
+            }
 
             mainComponent.setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
 
@@ -193,13 +189,16 @@ private:
 
         void handleCommandMessage(int commandId)
         {
+            if (commandId == CMD_MSG_VST_PARAM_CHANGES)
+                mainComponent.onParametersChanged();
             repaint();
         }
 
         void onParametersChanged()
         {
-            mainComponent.onParametersChanged();
+            postCommandMessage(CMD_MSG_VST_PARAM_CHANGES);
         }
+
     private:
         void valueChanged (Value&) override
         {

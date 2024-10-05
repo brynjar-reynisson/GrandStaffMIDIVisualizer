@@ -25,7 +25,7 @@
 #include <cmath>
 #include <set>
 
-static const Font getCustomFont(bool bold = 1)
+static const Font getCustomFont(bool bold = true)
 {
     if (bold)
         return Font(Typeface::createSystemTypefaceFor(BinaryData::InconsolataBold_ttf, BinaryData::InconsolataBold_ttfSize));
@@ -40,7 +40,9 @@ void MainComponent::onParametersChanged()
     octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
     updateChordPlacementButton();
     chordFontBoldButton.setToggleState(pluginModel->chordFontBold, false);
+    updateColourScheme();
     pluginModel->hasParamChanges = false;
+    repaint();
 }
 
 void MainComponent::init(PluginModel* model)
@@ -49,9 +51,6 @@ void MainComponent::init(PluginModel* model)
     pluginModel->paramChangedFromHost = [&] { onParametersChanged(); };
 
     holdNoteButton.addListener(this);
-    holdNoteButton.setImages(noteSvg.get());
-    holdNoteButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
-    holdNoteButton.setColour(TextButton::buttonOnColourId, Colours::white);
     holdNoteButton.setToggleable(true);
     holdNoteButton.setToggleState(pluginModel->holdNotes, false);
     holdNoteButton.setTooltip("Hold notes");
@@ -66,33 +65,28 @@ void MainComponent::init(PluginModel* model)
    
     leftArrowButton.addListener(this);
     leftArrowButton.setButtonText("<");
-    leftArrowButton.setColour(TextButton::textColourOffId, Colours::black);
-    leftArrowButton.setColour(TextButton::buttonColourId, Colours::white);
     leftArrowButton.setTooltip("Octave down");
 
-    octaveLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-    octaveLabel.setColour(juce::Label::backgroundColourId, Colour(230, 230, 230));
     octaveLabel.setJustificationType(juce::Justification::centred);
 
     rightArrowButton.addListener(this);
     rightArrowButton.setButtonText(">");
-    rightArrowButton.setColour(TextButton::textColourOffId, Colours::black);
-    rightArrowButton.setColour(TextButton::buttonColourId, Colours::white);
     rightArrowButton.setTooltip("Octave up");
 
     chordPlacementButton.addListener(this);
-    chordPlacementButton.setColour(TextButton::textColourOffId, Colours::black);
-    chordPlacementButton.setColour(TextButton::buttonColourId, Colours::white);
 
     chordFontBoldButton.addListener(this);
-    chordFontBoldButton.setColour(TextButton::textColourOnId, Colours::black);
-    chordFontBoldButton.setColour(TextButton::textColourOffId, Colours::darkgrey);
-    chordFontBoldButton.setColour(TextButton::buttonColourId, Colours::lightgrey);
-    chordFontBoldButton.setColour(TextButton::buttonOnColourId, Colours::white);
     chordFontBoldButton.setButtonText("B");
     chordFontBoldButton.setTooltip("Display chords with bold font");
 
+    darkModeButton.addListener(this);
+    darkModeButton.setToggleable(true);
+    darkModeButton.setToggleState(pluginModel->darkMode, false);
+    darkModeButton.setButtonText("D");
+    darkModeButton.setTooltip("Turn dark mode on");
+
     onParametersChanged();
+    updateColourScheme();
 
     addAndMakeVisible(holdNoteButton);
     addAndMakeVisible(keyMenu);
@@ -101,8 +95,8 @@ void MainComponent::init(PluginModel* model)
     addAndMakeVisible(rightArrowButton);
     addAndMakeVisible(chordPlacementButton);
     addAndMakeVisible(chordFontBoldButton);
+    addAndMakeVisible(darkModeButton);
 }
-
 
 void MainComponent::updateChordPlacementButton()
 {
@@ -128,13 +122,88 @@ void MainComponent::updateChordPlacementButton()
     }
 }
 
+void MainComponent::updateColourScheme()
+{
+    if (pluginModel->darkMode)
+    {
+        staffSvg = dmStaffSvg.get();
+        noteSvg = dmNoteSvg.get();
+        sharpSvg = dmSharpSvg.get();
+        flatSvg = dmFlatSvg.get();
+        naturalSvg = dmNaturalSvg.get();
+        doubleSharpSvg = dmDoubleSharpSvg.get();
+        doubleFlatSvg = dmDoubleFlatSvg.get();
+
+        octaveLabel.setColour(juce::Label::textColourId, darkModeForegroundColour);
+        octaveLabel.setColour(juce::Label::backgroundColourId, selectedDarkModeBackgroundColour);
+        darkModeButton.setTooltip("Turn dark mode off");
+        darkModeButton.setToggleState(true, false);
+    }
+    else
+    {
+        staffSvg = lmStaffSvg.get();
+        noteSvg = lmNoteSvg.get();
+        sharpSvg = lmSharpSvg.get();
+        flatSvg = lmFlatSvg.get();
+        naturalSvg = lmNaturalSvg.get();
+        doubleSharpSvg = lmDoubleSharpSvg.get();
+        doubleFlatSvg = lmDoubleFlatSvg.get();
+
+        octaveLabel.setColour(juce::Label::textColourId, juce::Colours::black);
+        octaveLabel.setColour(juce::Label::backgroundColourId, Colour(230, 230, 230));
+        darkModeButton.setTooltip("Turn dark mode on");
+        darkModeButton.setToggleState(false, false);
+    }
+    holdNoteButton.setImages(noteSvg);
+
+
+    Button* buttons[] = { &holdNoteButton, &leftArrowButton, &rightArrowButton, &chordPlacementButton, &chordFontBoldButton, &darkModeButton };
+    for (Button* button : buttons)
+    {
+        if (pluginModel->darkMode)
+        {
+            button->setColour(TextButton::textColourOnId, darkModeForegroundColour);
+            button->setColour(TextButton::textColourOffId, darkModeForegroundColour);
+            button->setColour(TextButton::buttonColourId, darkModeBackgroundColour);
+            button->setColour(TextButton::buttonOnColourId, selectedDarkModeBackgroundColour);
+        }
+        else
+        {
+            button->setColour(TextButton::textColourOnId, Colours::black);
+            button->setColour(TextButton::textColourOffId, Colours::darkgrey);
+            button->setColour(TextButton::buttonColourId, Colours::lightgrey);
+            button->setColour(TextButton::buttonOnColourId, Colours::white);
+        }
+    }
+
+    Drawable* drawables[] = { lmStaffSvg.get(), lmNoteSvg.get(), lmSharpSvg.get(), lmFlatSvg.get(), lmNaturalSvg.get(), lmDoubleSharpSvg.get(), lmDoubleFlatSvg.get() };
+    for (Drawable* drawable : drawables)
+    {
+        if (pluginModel->darkMode)
+        {
+            drawable->replaceColour(Colours::black, darkModeForegroundColour);
+        }
+        else
+        {
+            drawable->replaceColour(darkModeForegroundColour, Colours::black);
+        }
+    }
+}
+
+int getButtonHeight(Rectangle<int> bounds)
+{
+    int minButtonHeight = 13;
+    int calculatedButtonHeight = bounds.getHeight() * 0.05;
+    return std::max((int)calculatedButtonHeight, minButtonHeight);
+}
+
 void MainComponent::resized()
 {
     auto bounds = getLocalBounds();
     pluginModel->uiWidth = bounds.getWidth();
     pluginModel->uiHeight = bounds.getHeight();
 
-    int buttonSize = bounds.getHeight() / 20;
+    int buttonSize = getButtonHeight(bounds);
     int buttonSpace = buttonSize / 10;
     keyMenu.setBounds(buttonSpace, 0, buttonSize * 4, buttonSize);
 
@@ -145,6 +214,7 @@ void MainComponent::resized()
 
     chordPlacementButton.setBounds(buttonSpace, bounds.getHeight() - buttonSize - buttonSpace, buttonSize * 1.1, buttonSize);
     chordFontBoldButton.setBounds(buttonSize * 1.1 + buttonSpace * 2, bounds.getHeight() - buttonSize - buttonSpace, buttonSize * 1.1, buttonSize);
+    darkModeButton.setBounds(buttonSize * 2.2 + buttonSpace * 3, bounds.getHeight() - buttonSize - buttonSpace, buttonSize * 1.1, buttonSize);
 }
 
 void MainComponent::buttonClicked(juce::Button* button)
@@ -184,6 +254,15 @@ void MainComponent::buttonClicked(juce::Button* button)
         bool curMode = chordFontBoldButton.getToggleState();
         chordFontBoldButton.setToggleState(!curMode, false);
         pluginModel->chordFontBold = chordFontBoldButton.getToggleState();
+        if (pluginModel->chordFontBold)
+            chordFontBoldButton.setTooltip("Display chords with plain font");
+        else
+            chordFontBoldButton.setTooltip("Display chords with bold font");
+    }
+    else if (button == &darkModeButton)
+    {
+        pluginModel->darkMode = !pluginModel->darkMode;
+        updateColourScheme();
     }
 
     NullCheckedInvocation::invoke(pluginModel->paramChangedFromUI);
@@ -292,13 +371,16 @@ void MainComponent::paint(Graphics& g)
     chords.name(midiNotes, keys.getKey(keyMenu.getText()), chord);
 
     Rectangle<int> localBounds = getLocalBounds();
-    g.fillAll(juce::Colours::white);
+    int buttonHeight = getButtonHeight(localBounds);
+    g.fillAll(pluginModel->darkMode ? darkModeBackgroundColour : Colours::white);
+    g.setColour(pluginModel->darkMode ? darkModeForegroundColour : Colours::black);
     if (pluginModel->chordPlacement == 3)
     {
-        float x = localBounds.getWidth() * 0.05;
-        float textWidth = localBounds.getWidth() - localBounds.getWidth() * 0.1;
-        float textHeight = localBounds.getHeight() * 0.5;
-        float y = localBounds.getHeight() * 0.5 - textHeight * 0.5;
+        float x = buttonHeight * 0.2;
+        float y = 0;
+        float textWidth = localBounds.getWidth() - buttonHeight * 0.4;
+        float textHeight = localBounds.getHeight();
+        //float y = localBounds.getHeight() * 0.5 - textHeight * 0.5;
         g.setFont(getCustomFont(pluginModel->chordFontBold));
         g.setFont(textHeight);
         g.drawText(chord.name(), x, y, textWidth, textHeight, Justification::centred);
@@ -307,12 +389,8 @@ void MainComponent::paint(Graphics& g)
 
     StaffCalculator staffCalculator(localBounds);
     drawStaff(g, staffCalculator);
-    g.setColour(juce::Colours::black);
-
     drawKeySignature(g, staffCalculator);
-    
-
-    
+        
     //Find out where to place the notes
     NoteDrawInfo noteDrawInfos[127];
     std::set<int> anchorNotes;
@@ -395,7 +473,7 @@ void MainComponent::paint(Graphics& g)
                     chordY = noteDrawInfos[midiNote].y - textHeight * 0.5 + staffCalculator.noteHeight * 0.5;
                 }
                 else if (pluginModel->chordPlacement == 1) {
-                    chordX = localBounds.getHeight() * 0.1 + staffCalculator.lineThickness * 10;
+                    chordX = buttonHeight * 4.0;//localBounds.getHeight() * 0.1 + staffCalculator.lineThickness * 10;
                     chordY = localBounds.getHeight() - textHeight;
                 }
                 g.setFont(getCustomFont(pluginModel->chordFontBold));
@@ -435,8 +513,6 @@ void MainComponent::paint(Graphics& g)
         }
     }
 }
-
-
 
 void MainComponent::drawStaff(Graphics& g, StaffCalculator& staffCalculator)
 {

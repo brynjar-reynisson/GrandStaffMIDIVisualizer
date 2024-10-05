@@ -24,6 +24,14 @@
 #pragma once
 
 #include <JuceHeader.h>
+
+const static int CMD_MSG_MIDI_CHANGES = 10001;
+const static int CMD_MSG_VST_PARAM_CHANGES = 10002;
+
+static Colour darkModeForegroundColour(236, 236, 236);
+static Colour darkModeBackgroundColour(36, 33, 33);
+static Colour selectedDarkModeBackgroundColour(50, 50, 50);
+
 //==============================================================================
 enum ChordType
 {
@@ -183,6 +191,7 @@ public:
     bool holdNotes = false;
     int chordPlacement = 1;
     bool chordFontBold = false;
+    bool darkMode = false;
     bool hasParamChanges = false;
     bool hasUIChanges = false;
     int uiWidth = -1;
@@ -265,6 +274,7 @@ public:
     void buttonClicked(juce::Button* button) override;
     void onParametersChanged();
     void updateChordPlacementButton();
+    void updateColourScheme();
 
 private:
     void init(PluginModel* model);
@@ -275,13 +285,30 @@ private:
     void drawSharps(Graphics& g, StaffCalculator& staffCalculator, int numSharps);
     void drawFlats(Graphics& g, StaffCalculator& staffCalculator, int numFlats);
 
-    const std::unique_ptr<Drawable> staffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_02_svg, BinaryData::Grand_staff_02_svgSize);
-    const std::unique_ptr<Drawable> noteSvg = Drawable::createFromImageData(BinaryData::Whole_note_svg, BinaryData::Whole_note_svgSize);
-    const std::unique_ptr<Drawable> sharpSvg = Drawable::createFromImageData(BinaryData::Sharp_svg, BinaryData::Sharp_svgSize);
-    const std::unique_ptr<Drawable> flatSvg = Drawable::createFromImageData(BinaryData::Flat_svg, BinaryData::Flat_svgSize);
-    const std::unique_ptr<Drawable> naturalSvg = Drawable::createFromImageData(BinaryData::Natural_svg, BinaryData::Natural_svgSize);
-    const std::unique_ptr<Drawable> doubleSharpSvg = Drawable::createFromImageData(BinaryData::DoubleSharp_svg, BinaryData::DoubleSharp_svgSize);
-    const std::unique_ptr<Drawable> doubleFlatSvg = Drawable::createFromImageData(BinaryData::DoubleFlat_svg, BinaryData::DoubleFlat_svgSize);
+    const std::unique_ptr<Drawable> lmStaffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_02_svg, BinaryData::Grand_staff_02_svgSize);
+    const std::unique_ptr<Drawable> lmNoteSvg = Drawable::createFromImageData(BinaryData::Whole_note_svg, BinaryData::Whole_note_svgSize);
+    const std::unique_ptr<Drawable> lmSharpSvg = Drawable::createFromImageData(BinaryData::Sharp_svg, BinaryData::Sharp_svgSize);
+    const std::unique_ptr<Drawable> lmFlatSvg = Drawable::createFromImageData(BinaryData::Flat_svg, BinaryData::Flat_svgSize);
+    const std::unique_ptr<Drawable> lmNaturalSvg = Drawable::createFromImageData(BinaryData::Natural_svg, BinaryData::Natural_svgSize);
+    const std::unique_ptr<Drawable> lmDoubleSharpSvg = Drawable::createFromImageData(BinaryData::DoubleSharp_svg, BinaryData::DoubleSharp_svgSize);
+    const std::unique_ptr<Drawable> lmDoubleFlatSvg = Drawable::createFromImageData(BinaryData::DoubleFlat_svg, BinaryData::DoubleFlat_svgSize);
+
+    const std::unique_ptr<Drawable> dmStaffSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Grand_Staff_svg, BinaryData::Dark_Mode_Grand_Staff_svgSize);
+    const std::unique_ptr<Drawable> dmNoteSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Whole_Note_svg, BinaryData::Dark_Mode_Whole_Note_svgSize);
+    const std::unique_ptr<Drawable> dmSharpSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Sharp_svg, BinaryData::Dark_Mode_Sharp_svgSize);
+    const std::unique_ptr<Drawable> dmFlatSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Flat_svg, BinaryData::Dark_Mode_Flat_svgSize);
+    const std::unique_ptr<Drawable> dmNaturalSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Natural_svg, BinaryData::Dark_Mode_Natural_svgSize);
+    const std::unique_ptr<Drawable> dmDoubleSharpSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Double_Sharp_svg, BinaryData::Dark_Mode_Double_Sharp_svgSize);
+    const std::unique_ptr<Drawable> dmDoubleFlatSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Double_Flat_svg, BinaryData::Dark_Mode_Double_Flat_svgSize);
+
+    Drawable* staffSvg = nullptr;
+    Drawable* noteSvg = nullptr;
+    Drawable* sharpSvg = nullptr;
+    Drawable* flatSvg = nullptr;
+    Drawable* naturalSvg = nullptr;
+    Drawable* doubleSharpSvg = nullptr;
+    Drawable* doubleFlatSvg = nullptr;
+
     ComboBox keyMenu;
     DrawableButton holdNoteButton;
     TextButton leftArrowButton;
@@ -289,6 +316,7 @@ private:
     TextButton rightArrowButton;
     TextButton chordPlacementButton;
     TextButton chordFontBoldButton;
+    TextButton darkModeButton;
 
     PluginModel* pluginModel;
     Keys keys;
