@@ -247,6 +247,32 @@ Chords::Chords()
 	}
 }
 
+static bool chordIndexSet(String& string, int idx)
+{
+	String subStr = string.substring(idx, idx + 1);
+	return subStr == "1";
+}
+
+void ChordPattern::init()
+{
+	if (chordIndexSet(pattern, 1))
+		flat9 = true;
+	if (chordType != Tritonic && chordIndexSet(pattern, 6))
+		flat5 = true;
+	if (name.contains("b11"))
+		flat11 = true;
+	if (name.contains("b13"))
+		flat13 = true;
+	if (chordType == Aug)
+		sharp5 = true;
+	if (chordType != Minor && chordType != Dim && chordIndexSet(pattern, 3))
+		sharp9 = true;
+	if (name.contains("#11"))
+	{
+		sharp11 = true;
+		flat5 = false;
+	}
+}
 
 static std::vector<String> easterEggs =
 {
@@ -391,3 +417,68 @@ void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
 	}
 }
 
+static std::map<String, int> noteNameToMidiNote
+{
+	{ "C", 0 },
+	{ "C#", 1 },
+	{ "Db", 1 },
+	{ "D", 2 },
+	{ "D#", 3 },
+	{ "Eb", 3 },
+	{ "E", 4 },
+	{ "F", 5 },
+	{ "F#", 6 },
+	{ "Gb", 6 },
+	{ "G", 7 },
+	{ "G#", 8 },
+	{ "Ab", 8 },
+	{ "A", 9 },
+	{ "A#", 10 },
+	{ "Bb", 10 },
+	{ "B", 11}
+};
+
+static bool isSpecialFlatOrSharp(Chord& chord, bool testVar, int midiNote, int distanceFromC)
+{
+	if (!testVar)
+		return false;
+
+	int rootMidiNote = noteNameToMidiNote[chord.rootNote];
+	int remains = midiNote % 12;
+	return remains == rootMidiNote + distanceFromC;
+}
+
+bool Chord::isFlat5(int midiNote)
+{
+	return isSpecialFlatOrSharp(*this, pattern.flat5, midiNote, 6);
+}
+
+bool Chord::isFlat9(int midiNote)
+{
+	return isSpecialFlatOrSharp(*this, pattern.flat9, midiNote, 1);
+}
+
+bool Chord::isFlat11(int midiNote)
+{
+	return isSpecialFlatOrSharp(*this, pattern.flat11, midiNote, 4);
+}
+
+bool Chord::isFlat13(int midiNote)
+{
+	return isSpecialFlatOrSharp(*this, pattern.flat13, midiNote, 8);
+}
+
+bool Chord::isSharp5(int midiNote)
+{
+	return isSpecialFlatOrSharp(*this, pattern.sharp5, midiNote, 8);
+}
+
+bool Chord::isSharp9(int midiNote)
+{
+	return isSpecialFlatOrSharp(*this, pattern.sharp9, midiNote, 3);
+}
+
+bool Chord::isSharp11(int midiNote)
+{
+	return isSpecialFlatOrSharp(*this, pattern.sharp11, midiNote, 6);
+}

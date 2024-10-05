@@ -180,7 +180,10 @@ private:
         {
             auto bounds = getLocalBounds();
             constrainer.setMinimumWidth(std::max((int)(bounds.getHeight() * 0.85), 230 ));
-            constrainer.setMinimumHeight(260);
+            if (owner.pluginModel.chordPlacement != 3)
+                constrainer.setMinimumHeight(260);
+            else
+                constrainer.setMinimumHeight(100);
 
             mainComponent.setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
 

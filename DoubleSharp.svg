@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg2"
+   width="140"
+   height="140"
+   viewBox="0 0 140 140"
+   sodipodi:docname="Double sharp.eps"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs6" />
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1" />
+  <g
+     id="g8"
+     inkscape:groupmode="layer"
+     inkscape:label="ink_ext_XXXXXX"
+     transform="matrix(1.3333333,0,0,-1.3333333,0,140)">
+    <g
+       id="g10"
+       transform="scale(0.1)">
+      <path
+         d="M 1045.18,1045.32 C 910.5,1023.69 787.035,1027.75 663.691,1026.47 654.34,851.27 700.32,772.719 525.152,585.488 349.996,772.719 395.949,851.277 386.621,1026.47 263.277,1027.76 139.785,1023.68 5.13672,1045.32 26.7773,910.676 22.6992,787.18 23.9883,663.844 199.184,654.512 277.746,700.465 464.973,525.309 277.746,350.145 199.184,396.113 23.9883,386.785 22.6992,263.441 26.7773,139.949 5.13672,5.30078 139.785,26.9414 263.277,22.8633 386.621,24.1523 395.949,199.348 349.996,277.906 525.148,465.133 700.316,277.895 654.363,199.344 663.68,24.1602 787.027,22.8398 910.516,26.9375 1045.16,5.27734 1023.53,139.961 1027.59,263.43 1026.3,386.773 851.109,396.125 772.559,350.152 585.332,525.316 772.566,700.477 851.117,654.531 1026.3,663.844 c 1.32,123.347 -2.78,246.84 18.88,381.476"
+         style="fill:#0b0c0b;fill-opacity:1;fill-rule:evenodd;stroke:none"
+         id="path12" />
+    </g>
+  </g>
+</svg>

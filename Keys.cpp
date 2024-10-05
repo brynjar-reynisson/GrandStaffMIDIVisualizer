@@ -38,7 +38,12 @@ String Key::selectChordBaseNoteName(int midiNote, ChordType chordType)
 	String noteNameSharp = MidiMessage::getMidiNoteName(midiNote, true, false, 4);
 	String noteNameFlat = MidiMessage::getMidiNoteName(midiNote, false, false, 4);
 
-	if (chordType == Major && (noteNameSharp == "D#" || noteNameSharp == "A#"))
+	if (chordType == Dim && noteNameSharp.length() == 2)
+	{
+		//Dims with accented root note are always sharp, otherwise they would need to be full of double flats
+		return noteNameSharp;
+	}
+	else if (chordType == Major && (noteNameSharp == "D#" || noteNameSharp == "A#"))
 	{
 		//D# loses because of F## and A# loses because of C##
 		return noteNameFlat;
@@ -118,8 +123,19 @@ String Keys::selectChordName(String keyName, String sharpChordName, String flatC
 	return flatChordName;
 }
 
-static String getNoteName(int midiNote, Key& key, NoteDrawInfo& noteDrawInfo)
+static String getNoteName(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo)
 {
+	if (chord.pattern.chordType == Dim)
+	{
+		String curName = MidiMessage::getMidiNoteName(midiNote, true, false, 4);
+		if (curName == chord.rootNote)
+			//root names are sharp if accented
+			return curName;
+		else
+			//other notes are flat (except in two specially handled cases)
+			return MidiMessage::getMidiNoteName(midiNote, false, false, 4);
+	}
+
 	String noteName = MidiMessage::getMidiNoteName(midiNote, key.numSharps > 0, false, 4);
 	if ((key.numSharps > 0 && noteName == "F") || (key.numSharps > 1 && noteName == "C"))
 	{
@@ -150,19 +166,146 @@ static String getNoteName(int midiNote, Key& key, NoteDrawInfo& noteDrawInfo)
 	return noteName;
 }
 
+void Keys::applyDimAnchorNoteAndAccents(int midiNote, String& noteName, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo)
+{
+	//special handling here - all accented notes except the root note will be flat
+	if (noteName == chord.rootNote && noteName.length() == 2)
+	{
+		noteDrawInfo.anchorNote = midiNote - 1;
+		if (!key.hasNote(noteName))
+			noteDrawInfo.sharp = true;
+	}
+	else
+	{
+		if (noteName.length() == 2 && noteName != "E#" && noteName != "B#")
+		{
+			//we don't care if the previous algorithm decided sharp or flat - it's always flat when not the root note
+			//except in two cases :)
+			if ((chord.rootNote == "D#" && (noteName == "F#" || noteName == "Gb")) ||
+				(chord.rootNote == "A#" && (noteName == "C#" || noteName == "Db")))
+			{
+				noteDrawInfo.anchorNote = midiNote - 1;
+				if (chord.rootNote == "D#")
+					noteName = "F#";
+				else if (chord.rootNote == "A#")
+					noteName = "C#";
+				if (!key.hasNote(noteName))
+					noteDrawInfo.sharp = true;
+			}
+			else
+			{
+				noteDrawInfo.anchorNote = midiNote + 1;
+				if (!key.hasNote(noteName))
+					noteDrawInfo.flat = true;
+				else
+				{
+					noteDrawInfo.flat = false;
+				}
+			}
+		}
+		else if ((noteName == "D" && chord.rootNote == "F") || (noteName == "A" && chord.rootNote == "C"))
+		{
+			//two very special cases have a double flat
+			noteDrawInfo.anchorNote = midiNote + 2;
+			noteDrawInfo.doubleFlat = true;
+		}
+		else if ((noteName == "B" && chord.rootNote == "F") || (noteName == "B" && chord.rootNote == "D") || (noteName == "E" && chord.rootNote == "G"))
+		{
+			noteDrawInfo.anchorNote = midiNote + 1;
+			noteDrawInfo.flat = true;
+		}
+		else
+		{
+			applyAnchorNoteAndAccentsUsingChordKey(midiNote, key, chord, noteDrawInfo);
+		}
+	}
+}
+
 void Keys::applyAnchorNoteAndAccents(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo)
 {
+	String noteName = getNoteName(midiNote, key, chord, noteDrawInfo);
+	if ((noteName == "G" && chord.rootNote == "G#") || (noteName == "D" && chord.rootNote == "D#") || (noteName == "A" && chord.rootNote == "A#"))
+	{
+		//special double sharp cases
+		noteDrawInfo.anchorNote = midiNote - 2;
+		noteDrawInfo.doubleSharp = true;
+		return;
+	}
+
+	if (chord.pattern.chordType == Dim)
+	{
+		applyDimAnchorNoteAndAccents(midiNote, noteName, key, chord, noteDrawInfo);
+		return;
+	}
+
+	if (chord.isFlat5(midiNote) || chord.isFlat9(midiNote) || chord.isFlat11(midiNote) || chord.isFlat13(midiNote))
+	{
+		if (noteName == "B#")
+			noteName = "C";
+		else if (noteName == "E#")
+			noteName = "F";
+
+		//we want all of them flat or natural
+		if (noteName.length() == 2)
+		{
+			noteName = MidiMessage::getMidiNoteName(midiNote, false, false, 4);
+			noteDrawInfo.anchorNote = midiNote + 1;
+			if (!key.hasNote(noteName))
+			{
+				noteDrawInfo.flat = true;
+			}			
+		}
+		else
+		{
+			noteDrawInfo.anchorNote = midiNote;
+			if (!key.hasNote(noteName))
+			{
+				noteDrawInfo.natural = true;
+				noteDrawInfo.sharp = false;//it's set to true in the E# and B# cases
+			}
+		}
+		return;
+	}
+
+	if (chord.isSharp5(midiNote) || chord.isSharp9(midiNote) || chord.isSharp11(midiNote))
+	{
+		if (noteName == "Cb")
+			noteName = "B";
+		else if (noteName == "Fb")
+			noteName = "E";
+
+		//we want all of them sharp or natural
+		if (noteName.length() == 2)
+		{
+			noteName = MidiMessage::getMidiNoteName(midiNote, true, false, 4);
+			noteDrawInfo.anchorNote = midiNote - 1;
+			if (!key.hasNote(noteName))
+			{
+				noteDrawInfo.sharp = true;
+			}
+		}
+		else
+		{
+			noteDrawInfo.anchorNote = midiNote;
+			if (!key.hasNote(noteName))
+			{
+				noteDrawInfo.natural = true;
+				noteDrawInfo.flat = false;//it's set to true in the Cb and Fb cases
+			}
+		}
+		return;
+	}
+
 	if (Chords::chordHasSuperPower(chord))
 	{
 		applyAnchorNoteAndAccentsUsingChordKey(midiNote, key, chord, noteDrawInfo);
 		return;
 	}
 
-	String noteName = getNoteName(midiNote, key, noteDrawInfo);
-
 	//E#, B#, Cb and Fb get special treatment in getNoteName because they don't end up on the original natural place
 	if (noteName == "E#" || noteName == "B#" || noteName == "Cb" || noteName == "Fb")
 		return;
+
 
 	//Change anchor note if we have sharp or flat
 	if (noteName.length() == 2)
@@ -205,7 +348,11 @@ void Keys::applyAnchorNoteAndAccentsUsingChordKey(int midiNote, Key& key, Chord&
 	{
 		noteDrawInfo.anchorNote = midiNote;
 		if (!key.hasNote(noteName))
+		{
 			noteDrawInfo.natural = true;
+			noteDrawInfo.sharp = false;
+			noteDrawInfo.flat = false;
+		}
 	}
 	else if (noteName.endsWithChar('#'))
 	{

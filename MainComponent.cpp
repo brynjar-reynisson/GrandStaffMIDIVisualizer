@@ -118,6 +118,11 @@ void MainComponent::updateChordPlacementButton()
     }
     else if (pluginModel->chordPlacement == 2)
     {
+        chordPlacementButton.setButtonText("^");
+        chordPlacementButton.setTooltip("Only show chords");
+    }
+    else if (pluginModel->chordPlacement == 3)
+    {
         chordPlacementButton.setButtonText(" ");
         chordPlacementButton.setTooltip("Don't display chords");
     }
@@ -171,7 +176,7 @@ void MainComponent::buttonClicked(juce::Button* button)
     }
     else if (button == &chordPlacementButton)
     {
-        pluginModel->chordPlacement = pluginModel->chordPlacement == 2 ? 0 : pluginModel->chordPlacement + 1;
+        pluginModel->chordPlacement = pluginModel->chordPlacement == 3 ? 0 : pluginModel->chordPlacement + 1;
         updateChordPlacementButton();
     }
     else if (button == &chordFontBoldButton)
@@ -270,30 +275,43 @@ void MainComponent::paint(Graphics& g)
     if (pluginModel->hasParamChanges)
         onParametersChanged();
 
-    g.fillAll(juce::Colours::white);
-    StaffCalculator staffCalculator(getLocalBounds());
-    drawStaff(g, staffCalculator);
-    g.setColour(juce::Colours::black);
-
-    drawKeySignature(g, staffCalculator);
-    
-    
     std::set<int> midiNotes;
     for (int i = 0; i < 127; i++)
     {
         if (pluginModel->midiNotes[i] == 1)
             midiNotes.insert(i);
     }
-    
-    
+
     /*
     std::set<int> midiNotes{
-        48, 52, 55, 58
+        54, 57, 60, 63
     };
     */
 
     Chord chord;
     chords.name(midiNotes, keys.getKey(keyMenu.getText()), chord);
+
+    Rectangle<int> localBounds = getLocalBounds();
+    g.fillAll(juce::Colours::white);
+    if (pluginModel->chordPlacement == 3)
+    {
+        float x = localBounds.getWidth() * 0.05;
+        float textWidth = localBounds.getWidth() - localBounds.getWidth() * 0.1;
+        float textHeight = localBounds.getHeight() * 0.5;
+        float y = localBounds.getHeight() * 0.5 - textHeight * 0.5;
+        g.setFont(getCustomFont(pluginModel->chordFontBold));
+        g.setFont(textHeight);
+        g.drawText(chord.name(), x, y, textWidth, textHeight, Justification::centred);
+        return;
+    }
+
+    StaffCalculator staffCalculator(localBounds);
+    drawStaff(g, staffCalculator);
+    g.setColour(juce::Colours::black);
+
+    drawKeySignature(g, staffCalculator);
+    
+
     
     //Find out where to place the notes
     NoteDrawInfo noteDrawInfos[127];
@@ -323,7 +341,8 @@ void MainComponent::paint(Graphics& g)
     {
         // *rit to access value
         int midiNote = *rit;
-        if (!noteDrawInfos[midiNote].sharp && !noteDrawInfos[midiNote].flat && !noteDrawInfos[midiNote].natural)
+        if (!noteDrawInfos[midiNote].sharp && !noteDrawInfos[midiNote].flat && !noteDrawInfos[midiNote].natural &&
+            !noteDrawInfos[midiNote].doubleSharp && !noteDrawInfos[midiNote].doubleFlat)
             continue;
 
         //first note always indent 0, and update lastY
@@ -333,7 +352,7 @@ void MainComponent::paint(Graphics& g)
         }
 
         float yDiff = noteDrawInfos[midiNote].y - lastY;
-        float diffMultiplier = noteDrawInfos[midiNote].sharp ? 3 : 2;
+        float diffMultiplier = noteDrawInfos[midiNote].sharp || noteDrawInfos[midiNote].doubleFlat ? 3 : 2;
         if (yDiff < staffCalculator.noteHeight * diffMultiplier)
         {
             //if this is close to the indent 0 y, change indent, and don't update lastY
@@ -350,7 +369,7 @@ void MainComponent::paint(Graphics& g)
             lastY = noteDrawInfos[midiNote].y;
         }
     }
-    //Done finding out where to put the notes
+    //Done finding out where to put the notes and accents
 
     float baseNoteX = staffCalculator.x + (staffCalculator.staffHeight / 2) + (staffCalculator.staffHeight / 4) + staffCalculator.noteWidth * 5;
     int lineX = baseNoteX - staffCalculator.lineThickness;
@@ -362,7 +381,6 @@ void MainComponent::paint(Graphics& g)
         {
             if (pluginModel->chordPlacement > 0)
             {
-                Rectangle<int> localBounds = getLocalBounds();
                 float textWidth = pluginModel->chordPlacement == 2 ?
                     localBounds.getWidth() - baseNoteX - staffCalculator.noteWidth * 3 :
                     localBounds.getWidth() - localBounds.getWidth() * 0.05 - staffCalculator.lineThickness * 2;
@@ -406,6 +424,14 @@ void MainComponent::paint(Graphics& g)
         else if (noteDrawInfos[midiNote].natural)
         {
             naturalSvg->drawWithin(g, Rectangle<float>(accentX, noteDrawInfos[midiNote].y - staffCalculator.noteHeight * 0.75, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5f), juce::RectanglePlacement::Flags::xLeft, 1.0);
+        }
+        else if (noteDrawInfos[midiNote].doubleSharp)
+        {
+            doubleSharpSvg->drawWithin(g, Rectangle<float>(accentX, noteDrawInfos[midiNote].y, staffCalculator.noteWidth, staffCalculator.noteHeight), juce::RectanglePlacement::Flags::xLeft, 1.0);
+        }
+        else if (noteDrawInfos[midiNote].doubleFlat)
+        {
+            doubleFlatSvg->drawWithin(g, Rectangle<float>(accentX, noteDrawInfos[midiNote].y - staffCalculator.noteHeight * 1.25, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5f), juce::RectanglePlacement::Flags::xLeft, 1.0);
         }
     }
 }

@@ -44,10 +44,21 @@ struct ChordPattern
         this->pattern = pattern;
         this->name = name;
         this->chordType = chordType;
+        init();
     }
+
+    void init();
+
     String pattern;
     String name;
     ChordType chordType;
+    bool flat5 = false;
+    bool flat9 = false;
+    bool flat11 = false;
+    bool flat13 = false;
+    bool sharp5 = false;
+    bool sharp9 = false;
+    bool sharp11 = false;
 };
 
 static ChordPattern nullPattern = ChordPattern();
@@ -71,6 +82,13 @@ struct Chord
     {
         return pattern.chordType == Minor || pattern.chordType == Dim;
     };
+    bool isFlat5(int midiNote);
+    bool isFlat9(int midiNote);
+    bool isFlat11(int midiNote);
+    bool isFlat13(int midiNote);
+    bool isSharp5(int midiNote);
+    bool isSharp9(int midiNote);
+    bool isSharp11(int midiNote);
 };
 //==============================================================================
 struct NoteDrawInfo
@@ -80,6 +98,8 @@ struct NoteDrawInfo
     bool sharp = false;
     bool flat = false;
     bool natural = false;
+    bool doubleSharp = false;
+    bool doubleFlat = false;
     int accentIndent = 0;
     int lineCount = 0;
     float linePositions[5];
@@ -114,6 +134,7 @@ public:
 private:
     void addKey(String name, std::list<String>& notes, int numSharps, int numFlats);
     void applyAnchorNoteAndAccentsUsingChordKey(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo);
+    void applyDimAnchorNoteAndAccents(int midiNote, String& noteName, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo);
     std::map<String, Key> keys;
     std::vector<String> keyNames;
 };
@@ -134,7 +155,7 @@ public:
         if (chord.isMajor3rd() && (chord.rootNote == "Bb" || chord.rootNote == "Eb" || chord.rootNote == "C" || chord.rootNote == "D" ||
             chord.rootNote == "E" || chord.rootNote == "F" || chord.rootNote == "G" || chord.rootNote == "A" || chord.rootNote == "B"))
             return true;
-        else if (chord.isMinor3rd() && (chord.rootNote == "C" || chord.rootNote == "D" || chord.rootNote == "E" || chord.rootNote == "G" ||
+        else if (chord.pattern.chordType == Minor && (chord.rootNote == "C" || chord.rootNote == "D" || chord.rootNote == "E" || chord.rootNote == "G" ||
             chord.rootNote == "A" || chord.rootNote == "B"))
             return true;
         return false;
@@ -259,6 +280,8 @@ private:
     const std::unique_ptr<Drawable> sharpSvg = Drawable::createFromImageData(BinaryData::Sharp_svg, BinaryData::Sharp_svgSize);
     const std::unique_ptr<Drawable> flatSvg = Drawable::createFromImageData(BinaryData::Flat_svg, BinaryData::Flat_svgSize);
     const std::unique_ptr<Drawable> naturalSvg = Drawable::createFromImageData(BinaryData::Natural_svg, BinaryData::Natural_svgSize);
+    const std::unique_ptr<Drawable> doubleSharpSvg = Drawable::createFromImageData(BinaryData::DoubleSharp_svg, BinaryData::DoubleSharp_svgSize);
+    const std::unique_ptr<Drawable> doubleFlatSvg = Drawable::createFromImageData(BinaryData::DoubleFlat_svg, BinaryData::DoubleFlat_svgSize);
     ComboBox keyMenu;
     DrawableButton holdNoteButton;
     TextButton leftArrowButton;
