@@ -65,8 +65,6 @@ String Key::selectChordBaseNoteName(int midiNote, ChordType chordType)
 
 Keys::Keys()
 {
-	addKey("Sharp", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
-	addKey("Flat", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
 	addKey("C", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
 	addKey("C#", std::list<String>({ "C#","D#","E#","F#","G#","A#","B#" }), 7, 0);
 	addKey("Db", std::list<String>({ "Db","Eb","F", "Gb","Ab","Bb","C" }), 0, 5);
@@ -84,6 +82,9 @@ Keys::Keys()
 	//A# not supported, 3 double sharps
 	addKey("Bb", std::list<String>({ "Bb","C","D","Eb","F","G","A"}), 0, 2);
 	addKey("B", std::list<String>({ "B","C#","D#","E","F#","G#","A#"}), 5, 0);		
+
+	addKey("Sharp", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
+	addKey("Flat", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
 }
 
 void Keys::addKey(String name, std::list<String>& notes, int numSharps, int numFlats)

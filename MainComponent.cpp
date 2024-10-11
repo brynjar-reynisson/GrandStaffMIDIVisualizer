@@ -45,6 +45,16 @@ void MainComponent::onParametersChanged()
     repaint();
 }
 
+void MainComponent::onMidiChanged()
+{
+    ScopedLock lock(pluginModel->criticalSection);
+    this->midiNotes.clear();
+    for (int i=0; i<127; i++)
+        if (pluginModel->midiNotes[i])
+            this->midiNotes.insert(i);
+    chords.name(midiNotes, keys.getKey(keyMenu.getText()), chord);
+}
+
 void MainComponent::init(PluginModel* model)
 {
     this->pluginModel = model;
@@ -60,9 +70,9 @@ void MainComponent::init(PluginModel* model)
     {
         keyMenu.addItem(key, i++);
     }
-    keyMenu.onChange = [this] { keyMenuChanged(); };
     keyMenu.setSelectedItemIndex(1);
-   
+    keyMenu.onChange = [this] { keyMenuChanged(); };
+
     leftArrowButton.addListener(this);
     leftArrowButton.setButtonText("<");
     leftArrowButton.setTooltip("Octave down");
@@ -354,21 +364,12 @@ void MainComponent::paint(Graphics& g)
     if (pluginModel->hasParamChanges)
         onParametersChanged();
 
-    std::set<int> midiNotes;
-    for (int i = 0; i < 127; i++)
-    {
-        if (pluginModel->midiNotes[i] == 1)
-            midiNotes.insert(i);
-    }
-
     /*
     std::set<int> midiNotes{
         54, 57, 60, 63
     };
     */
 
-    Chord chord;
-    chords.name(midiNotes, keys.getKey(keyMenu.getText()), chord);
 
     Rectangle<int> localBounds = getLocalBounds();
     int buttonHeight = getButtonHeight(localBounds);

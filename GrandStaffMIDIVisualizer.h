@@ -78,23 +78,24 @@ public:
     void processBlock (AudioBuffer<float>& audio,  MidiBuffer& midi) override 
     {
         audio.clear();
+        ScopedLock lock(pluginModel.criticalSection);
         bool hasMidiChanges = false;
         for (const MidiMessageMetadata metadata : midi)
         {
+            int noteNumber = metadata.getMessage().getNoteNumber();
             if (!pluginModel.holdNotes)
             {
                 if (metadata.getMessage().isNoteOn() || metadata.getMessage().isNoteOff())
                 {
-                    int onOff = metadata.getMessage().isNoteOn() ? 1 : 0;
-                    pluginModel.midiNotes[metadata.getMessage().getNoteNumber()] = onOff;
+                    bool onOff = metadata.getMessage().isNoteOn();
+                    pluginModel.midiNotes[noteNumber] = onOff;
                     hasMidiChanges = true;
                 }
             }
             else if (pluginModel.holdNotes && metadata.getMessage().isNoteOn())
             {
-                int noteNumber = metadata.getMessage().getNoteNumber();
-                bool currentlyOn = pluginModel.midiNotes[noteNumber] == 1;
-                pluginModel.midiNotes[noteNumber] = currentlyOn ? 0 : 1;
+                bool currentlyOn = pluginModel.midiNotes[noteNumber];
+                pluginModel.midiNotes[noteNumber] = !currentlyOn;
                 hasMidiChanges = true;
             }
         }
@@ -191,6 +192,8 @@ private:
         {
             if (commandId == CMD_MSG_VST_PARAM_CHANGES)
                 mainComponent.onParametersChanged();
+            else if (commandId == CMD_MSG_MIDI_CHANGES)
+                mainComponent.onMidiChanged();
             repaint();
         }
 

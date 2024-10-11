@@ -199,6 +199,8 @@ public:
 
     std::function<void()> paramChangedFromUI;
     std::function<void()> paramChangedFromHost;
+
+    CriticalSection criticalSection;
 };
 
 //==============================================================================
@@ -272,9 +274,10 @@ public:
     void paint(Graphics& g) override;
     void resized() override;
     void buttonClicked(juce::Button* button) override;
-    void onParametersChanged();
     void updateChordPlacementButton();
     void updateColourScheme();
+    void onParametersChanged();
+    void onMidiChanged();
 
 private:
     void init(PluginModel* model);
@@ -321,6 +324,8 @@ private:
     PluginModel* pluginModel;
     Keys keys;
     Chords chords;
+    std::set<int> midiNotes;
+    Chord chord;
 
     TooltipWindow tooltipWindow{ this }; // instance required for ToolTips to work
 };
