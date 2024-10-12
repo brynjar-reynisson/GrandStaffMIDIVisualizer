@@ -177,7 +177,7 @@ private:
             }
             else
             {
-                constrainer.setMinimumWidth(130);
+                constrainer.setMinimumWidth(190);
                 constrainer.setMinimumHeight(100);
                 constrainer.setMaximumHeight(bounds.getWidth() * 2);
             }

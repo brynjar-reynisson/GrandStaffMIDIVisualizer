@@ -216,14 +216,14 @@ void MainComponent::resized()
     int buttonSpace = buttonSize / 10;
     keyMenu.setBounds(buttonSpace, 0, buttonSize * 4, buttonSize);
 
+    chordPlacementButton.setBounds(bounds.getWidth() - buttonSize * 8.8 - buttonSpace * 5, 0, buttonSize * 1.1, buttonSize);
+    chordFontBoldButton.setBounds(bounds.getWidth() - buttonSize * 7.7 - buttonSpace * 4, 0, buttonSize * 1.1, buttonSize);
+    darkModeButton.setBounds(bounds.getWidth() - buttonSize * 6.6 - buttonSpace * 3, 0, buttonSize * 1.1, buttonSize);
+
     holdNoteButton.setBounds(bounds.getWidth() - buttonSize * 5.5 - buttonSpace * 2, 0, buttonSize * 1.1, buttonSize);
     leftArrowButton.setBounds(bounds.getWidth() - buttonSize * 4.4 - buttonSpace, 0, buttonSize * 1.1, buttonSize);
     octaveLabel.setBounds(bounds.getWidth() - buttonSize * 3.3 - buttonSpace, 0, buttonSize * 2.2, buttonSize);
     rightArrowButton.setBounds(bounds.getWidth() - buttonSize * 1.1 - buttonSpace, 0, buttonSize * 1.1, buttonSize);
-
-    chordPlacementButton.setBounds(buttonSpace, bounds.getHeight() - buttonSize - buttonSpace, buttonSize * 1.1, buttonSize);
-    chordFontBoldButton.setBounds(buttonSize * 1.1 + buttonSpace * 2, bounds.getHeight() - buttonSize - buttonSpace, buttonSize * 1.1, buttonSize);
-    darkModeButton.setBounds(buttonSize * 2.2 + buttonSpace * 3, bounds.getHeight() - buttonSize - buttonSpace, buttonSize * 1.1, buttonSize);
 }
 
 void MainComponent::buttonClicked(juce::Button* button)
