@@ -47,10 +47,25 @@ enum ChordType
 //==============================================================================
 struct ChordPattern
 {
-    ChordPattern(String pattern = "", String name = "", ChordType chordType = None)
+    ChordPattern()
+    {
+        pattern = "", name = "", shortName = "", chordType = None;
+    }
+
+    ChordPattern(String pattern, String name, ChordType chordType)
     {
         this->pattern = pattern;
         this->name = name;
+        this->shortName = name;
+        this->chordType = chordType;
+        init();
+    }
+
+    ChordPattern(String pattern, String name, String shortName, ChordType chordType)
+    {
+        this->pattern = pattern;
+        this->name = name;
+        this->shortName = shortName;
         this->chordType = chordType;
         init();
     }
@@ -59,6 +74,7 @@ struct ChordPattern
 
     String pattern;
     String name;
+    String shortName;
     ChordType chordType;
     bool flat5 = false;
     bool flat9 = false;
@@ -75,7 +91,7 @@ static ChordPattern nullPattern = ChordPattern();
 struct Chord
 {
     Chord(ChordPattern pattern = nullPattern, String rootNote = "", String bassNote = "");
-    String name();
+    String name(bool shortName = false);
 
     ChordPattern pattern;
     String rootNote;
@@ -98,6 +114,9 @@ struct Chord
     bool isSharp9(int midiNote);
     bool isSharp11(int midiNote);
 };
+
+static Chord nullChord = Chord();
+
 //==============================================================================
 struct NoteDrawInfo
 {
@@ -287,6 +306,7 @@ private:
     void drawKeySignature(Graphics& g, StaffCalculator& staffCalculator);
     void drawSharps(Graphics& g, StaffCalculator& staffCalculator, int numSharps);
     void drawFlats(Graphics& g, StaffCalculator& staffCalculator, int numFlats);
+    void drawText(Graphics& g, String text, float x, float y, float width, float height);
 
     const std::unique_ptr<Drawable> lmStaffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_02_svg, BinaryData::Grand_staff_02_svgSize);
     const std::unique_ptr<Drawable> lmNoteSvg = Drawable::createFromImageData(BinaryData::Whole_note_svg, BinaryData::Whole_note_svgSize);

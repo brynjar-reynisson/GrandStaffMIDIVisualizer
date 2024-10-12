@@ -9,6 +9,9 @@
               jucerFormatVersion="1">
   <MAINGROUP id="bMaV9S" name="GrandStaffMIDIVisualizer">
     <GROUP id="{0C99DFAA-E7F1-9A2E-0E53-E2048698FFA0}" name="Source">
+      <FILE id="Att34q" name="consola.ttf" compile="0" resource="1" file="../consola.ttf"/>
+      <FILE id="fquZB5" name="ChordDefinitions.cpp" compile="1" resource="0"
+            file="../ChordDefinitions.cpp"/>
       <FILE id="EG42KP" name="Dark_Mode_Whole_Note.svg" compile="0" resource="1"
             file="../Dark_Mode_Whole_Note.svg"/>
       <FILE id="mpvYRX" name="Dark_Mode_Sharp.svg" compile="0" resource="1"
@@ -90,8 +93,10 @@
     </XCODE_MAC>
     <VS2022 targetFolder="Builds/VisualStudio2022" extraCompilerFlags="/bigobj">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="GrandStaffMIDIVisualizer"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="GrandStaffMIDIVisualizer"/>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="GrandStaffMIDIVisualizer"
+                       characterSet="Unicode"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="GrandStaffMIDIVisualizer"
+                       characterSet="Unicode"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path=""/>

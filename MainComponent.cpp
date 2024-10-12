@@ -27,10 +27,7 @@
 
 static const Font getCustomFont(bool bold = true)
 {
-    if (bold)
-        return Font(Typeface::createSystemTypefaceFor(BinaryData::InconsolataBold_ttf, BinaryData::InconsolataBold_ttfSize));
-    else
-        return Font(Typeface::createSystemTypefaceFor(BinaryData::InconsolataRegular_ttf, BinaryData::InconsolataRegular_ttfSize));
+    return Font(Typeface::createSystemTypefaceFor(BinaryData::consola_ttf, BinaryData::consola_ttfSize)).withTypefaceStyle(bold ? "Bold" : "Plain");
 }
 
 void MainComponent::onParametersChanged()
@@ -52,7 +49,9 @@ void MainComponent::onMidiChanged()
     for (int i=0; i<127; i++)
         if (pluginModel->midiNotes[i])
             this->midiNotes.insert(i);
-    chords.name(midiNotes, keys.getKey(keyMenu.getText()), chord);
+
+    chord = nullChord;
+    chords.name(this->midiNotes, keys.getKey(keyMenu.getText()), chord);
 }
 
 void MainComponent::init(PluginModel* model)
@@ -359,6 +358,16 @@ static void resolveNeighborConflicts(std::set<int>& midiNotes, NoteDrawInfo* not
     }
 }
 
+void MainComponent::drawText(Graphics& g, String text, float x, float y, float width, float height)
+{
+    AttributedString chordStr;
+    chordStr.setText(text);
+    chordStr.setColour(pluginModel->darkMode ? darkModeForegroundColour : Colours::black);
+    chordStr.setFont(getCustomFont(pluginModel->chordFontBold).withHeight(height));
+    chordStr.setJustification(juce::Justification::centred);
+    chordStr.draw(g, Rectangle<float>(x, y, width, height));
+}
+
 void MainComponent::paint(Graphics& g)
 {
     if (pluginModel->hasParamChanges)
@@ -368,11 +377,11 @@ void MainComponent::paint(Graphics& g)
     std::set<int> midiNotes{
         54, 57, 60, 63
     };
-    */
-
+    */    
 
     Rectangle<int> localBounds = getLocalBounds();
     int buttonHeight = getButtonHeight(localBounds);
+
     g.fillAll(pluginModel->darkMode ? darkModeBackgroundColour : Colours::white);
     g.setColour(pluginModel->darkMode ? darkModeForegroundColour : Colours::black);
     if (pluginModel->chordPlacement == 3)
@@ -381,10 +390,7 @@ void MainComponent::paint(Graphics& g)
         float y = 0;
         float textWidth = localBounds.getWidth() - buttonHeight * 0.4;
         float textHeight = localBounds.getHeight();
-        //float y = localBounds.getHeight() * 0.5 - textHeight * 0.5;
-        g.setFont(getCustomFont(pluginModel->chordFontBold));
-        g.setFont(textHeight);
-        g.drawText(chord.name(), x, y, textWidth, textHeight, Justification::centred);
+        drawText(g, chord.name(true), x, y, textWidth, textHeight);
         return;
     }
 
@@ -477,9 +483,7 @@ void MainComponent::paint(Graphics& g)
                     chordX = buttonHeight * 4.0;//localBounds.getHeight() * 0.1 + staffCalculator.lineThickness * 10;
                     chordY = localBounds.getHeight() - textHeight;
                 }
-                g.setFont(getCustomFont(pluginModel->chordFontBold));
-                g.setFont(textHeight);
-                g.drawText(chord.name(), chordX, chordY, textWidth, textHeight, Justification::centredLeft);
+                drawText(g, chord.name(true), chordX, chordY, textWidth, textHeight);
             }
             firstNote = false;
         }
