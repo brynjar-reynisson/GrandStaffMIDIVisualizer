@@ -27,7 +27,7 @@
 
  BEGIN_JUCE_PIP_METADATA
 
- name:                  Grand Staff MIDI Visualizer
+ name:                  GrandStaffMIDIVisualizer
  version:               1.0.0
  vendor:                Brynjar Reynisson
  website:               https://breynisson.neocities.org/
@@ -178,8 +178,8 @@ private:
             else
             {
                 constrainer.setMinimumWidth(190);
-                constrainer.setMinimumHeight(100);
-                constrainer.setMaximumHeight(bounds.getWidth() * 2);
+                constrainer.setMinimumHeight(40);
+                constrainer.setMaximumHeight(bounds.getWidth());
             }
 
             mainComponent.setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());

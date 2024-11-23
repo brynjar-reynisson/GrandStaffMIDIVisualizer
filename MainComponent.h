@@ -30,7 +30,7 @@ const static int CMD_MSG_VST_PARAM_CHANGES = 10002;
 
 static Colour darkModeForegroundColour(236, 236, 236);
 static Colour darkModeBackgroundColour(36, 33, 33);
-static Colour selectedDarkModeBackgroundColour(50, 50, 50);
+static Colour darkModeSelectedBackgroundColour(95, 95, 95);
 
 //==============================================================================
 enum ChordType
@@ -208,6 +208,7 @@ public:
     int transposeOctaves = 0;
     int keyId = 0;
     bool holdNotes = false;
+    bool shortNotation = false;
     int chordPlacement = 1;
     bool chordFontBold = false;
     bool darkMode = false;
@@ -229,6 +230,9 @@ public:
     StaffCalculator(Rectangle<int> bounds);
     void noteYPlacement(int midiNote, NoteDrawInfo& noteDrawInfo, bool sharp=false, bool applySharpFlat=true, int transpose=0);
     
+    float buttonHeight;
+    float buttonSpace;
+
     float noteMultiplyConstant;
     float noteWidth;
     float noteHeight;
@@ -275,7 +279,6 @@ public:
     float sharpsY[14];
     float flatsX[14];//Bb Eb Ab Db Gb Cb Fb
     float flatsY[14];
-
 private:
 };
 //==============================================================================
@@ -289,6 +292,7 @@ public:
     ~MainComponent()
     {
         pluginModel->paramChangedFromHost = nullptr;
+        keyMenu.setLookAndFeel(nullptr);
     }
     void paint(Graphics& g) override;
     void resized() override;
@@ -306,7 +310,7 @@ private:
     void drawKeySignature(Graphics& g, StaffCalculator& staffCalculator);
     void drawSharps(Graphics& g, StaffCalculator& staffCalculator, int numSharps);
     void drawFlats(Graphics& g, StaffCalculator& staffCalculator, int numFlats);
-    void drawText(Graphics& g, String text, float x, float y, float width, float height);
+    void drawText(Graphics& g, String text, float x, float y, float width, float height, bool left = true);
 
     const std::unique_ptr<Drawable> lmStaffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_02_svg, BinaryData::Grand_staff_02_svgSize);
     const std::unique_ptr<Drawable> lmNoteSvg = Drawable::createFromImageData(BinaryData::Whole_note_svg, BinaryData::Whole_note_svgSize);
@@ -336,6 +340,7 @@ private:
     DrawableButton holdNoteButton;
     TextButton leftArrowButton;
     Label octaveLabel;
+    TextButton notationButton;
     TextButton rightArrowButton;
     TextButton chordPlacementButton;
     TextButton chordFontBoldButton;
@@ -348,4 +353,13 @@ private:
     Chord chord;
 
     TooltipWindow tooltipWindow{ this }; // instance required for ToolTips to work
+    LookAndFeel_V4 darkLookAndFeel;
+    LookAndFeel_V4 lightLookAndFeel;
 };
+
+static int getButtonHeight(Rectangle<int> bounds)
+{
+    int minButtonHeight = 13;
+    int calculatedButtonHeight = bounds.getHeight() * 0.05;
+    return std::max((int)calculatedButtonHeight, minButtonHeight);
+}

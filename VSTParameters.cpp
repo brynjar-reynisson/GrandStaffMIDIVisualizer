@@ -31,6 +31,7 @@ VSTParameters::VSTParameters(AudioProcessor& processorRef, PluginModel& pluginMo
                 std::make_unique<juce::AudioParameterChoice>(KEY, "Key", StringArray { "C", "C#", "Db", "D", "Eb", "E", "F", "F#", "Gb", "G", "Ab", "A", "Bb", "B", "Sharp", "Flat" }, 0),
                 std::make_unique<juce::AudioParameterBool>(HOLD_NOTES, "Hold Notes", false),
                 std::make_unique<juce::AudioParameterInt>(OCTAVES, "Octaves", -3, 3, 0),
+                std::make_unique<juce::AudioParameterBool>(SHORT_NOTATION, "Display chords with short notation", false),
                 std::make_unique<juce::AudioParameterChoice>(CHORD_PLACEMENT, "Chord Placement", StringArray { "Hidden", "Bottom Left", "Right to Staff", "Only show chords"}, 1),
                 std::make_unique<juce::AudioParameterBool>(CHORD_FONT_BOLD, "Display chords with bold font", false),
                 std::make_unique<juce::AudioParameterBool>(DARK_MODE, "Dark mode", false)
@@ -40,6 +41,7 @@ VSTParameters::VSTParameters(AudioProcessor& processorRef, PluginModel& pluginMo
     keyParameter = (AudioParameterChoice*)parameters.getParameter(KEY);
     holdNotesParameter = parameters.getRawParameterValue(HOLD_NOTES);
     octavesParameter = parameters.getRawParameterValue(OCTAVES);
+    shortNotationParameter = parameters.getRawParameterValue(SHORT_NOTATION);
     chordPlacementParameter = parameters.getRawParameterValue(CHORD_PLACEMENT);
     chordFontBoldParameter = parameters.getRawParameterValue(CHORD_FONT_BOLD);
     darkModeParameter = parameters.getRawParameterValue(DARK_MODE);
@@ -47,6 +49,7 @@ VSTParameters::VSTParameters(AudioProcessor& processorRef, PluginModel& pluginMo
     parameters.addParameterListener(KEY, this);
     parameters.addParameterListener(HOLD_NOTES, this);
     parameters.addParameterListener(OCTAVES, this);
+    parameters.addParameterListener(SHORT_NOTATION, this);
     parameters.addParameterListener(CHORD_PLACEMENT, this);
     parameters.addParameterListener(CHORD_FONT_BOLD, this);
     parameters.addParameterListener(DARK_MODE, this);
@@ -60,6 +63,7 @@ VSTParameters::~VSTParameters()
     parameters.removeParameterListener(KEY, this);
     parameters.removeParameterListener(HOLD_NOTES, this);
     parameters.removeParameterListener(OCTAVES, this);
+    parameters.removeParameterListener(SHORT_NOTATION, this);
     parameters.removeParameterListener(CHORD_PLACEMENT, this);
     parameters.removeParameterListener(CHORD_FONT_BOLD, this);
     parameters.removeParameterListener(DARK_MODE, this);
@@ -73,6 +77,8 @@ void VSTParameters::parameterChanged(const String& parameterID, float newValue)
         pluginModel.holdNotes = *holdNotesParameter > 0.5;
     else if (parameterID == OCTAVES.getCharPointer())
         pluginModel.transposeOctaves = (int)*octavesParameter;
+    else if (parameterID == SHORT_NOTATION.getCharPointer())
+        pluginModel.shortNotation = *shortNotationParameter > 0.5;
     else if (parameterID == CHORD_PLACEMENT.getCharPointer())
         pluginModel.chordPlacement = (int)*chordPlacementParameter;
     else if (parameterID == CHORD_FONT_BOLD.getCharPointer())
@@ -90,6 +96,7 @@ void VSTParameters::pluginModelChangedFromUI()
     *keyParameter = pluginModel.keyId;
     *holdNotesParameter = pluginModel.holdNotes;
     *octavesParameter = pluginModel.transposeOctaves;
+    *shortNotationParameter = pluginModel.shortNotation;
     *chordPlacementParameter = pluginModel.chordPlacement;
     *chordFontBoldParameter = pluginModel.chordFontBold;
     *darkModeParameter = pluginModel.darkMode;
@@ -100,6 +107,9 @@ void VSTParameters::pluginModelChangedFromUI()
     Value octaves = parameters.getParameterAsValue(OCTAVES);
     octaves = pluginModel.transposeOctaves;
 
+    Value shortNotation = parameters.getParameterAsValue(SHORT_NOTATION);
+    shortNotation = pluginModel.shortNotation;
+
     Value chordPlacement = parameters.getParameterAsValue(CHORD_PLACEMENT);
     chordPlacement = pluginModel.chordPlacement;
 
@@ -108,14 +118,6 @@ void VSTParameters::pluginModelChangedFromUI()
 
     Value darkMode = parameters.getParameterAsValue(DARK_MODE);
     darkMode = pluginModel.darkMode;
-
-    //TODO, complete suggestion from JUCE forum for all params
-    /*
-    auto* param = parameters.getParameter(OCTAVES);
-    param->beginChangeGesture();
-    param->setValueNotifyingHost(pluginModel.transposeOctaves);
-    param->endChangeGesture();
-    */
 
     pluginModel.hasUIChanges = false;
 }
@@ -162,6 +164,7 @@ void VSTParameters::setStateInformation(const void* data, int size)
             pluginModel.keyId = (int)*keyParameter;
             pluginModel.holdNotes = *holdNotesParameter > 0.5 ? true : false;
             pluginModel.transposeOctaves = (int)*octavesParameter;
+            pluginModel.shortNotation = *shortNotationParameter > 0.5 ? true : false;
             pluginModel.chordPlacement = (int)*chordPlacementParameter;
             pluginModel.chordFontBold = *chordFontBoldParameter > 0.5 ? true : false;
             pluginModel.darkMode = *darkModeParameter > 0.5 ? true : false;
@@ -174,15 +177,6 @@ void VSTParameters::setStateInformation(const void* data, int size)
                 pluginModel.uiWidth = uiStateXml->getAttributeValue(0).getIntValue();
                 pluginModel.uiHeight = uiStateXml->getAttributeValue(1).getIntValue();
             }
-
-            /*
-            * Seems to be harmful
-            parameters.getParameter(KEY)->setValueNotifyingHost(*keyParameter);
-            parameters.getParameter(HOLD_NOTES)->setValueNotifyingHost(*holdNotesParameter);
-            parameters.getParameter(OCTAVES)->setValueNotifyingHost(*octavesParameter);
-            parameters.getParameter(CHORD_PLACEMENT)->setValueNotifyingHost(*chordPlacementParameter);
-            parameters.getParameter(CHORD_FONT_BOLD)->setValueNotifyingHost(*chordFontBoldParameter);
-            */
         }
     }
 }

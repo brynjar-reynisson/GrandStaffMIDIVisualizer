@@ -25,10 +25,13 @@
 
 StaffCalculator::StaffCalculator(Rectangle<int> bounds)
 {
+    buttonHeight = getButtonHeight(bounds);
+    buttonSpace = buttonHeight * 0.1;
+
     noteMultiplyConstant = 0.97;
 
-    x = bounds.getX();
-    y = bounds.getY();
+    x = buttonSpace * 2;
+    y = 0;
     height = bounds.getHeight();
 
     staffYIncrement = y + (height * 0.2);

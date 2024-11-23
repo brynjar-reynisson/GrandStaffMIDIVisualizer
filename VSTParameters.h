@@ -29,6 +29,7 @@
 static String KEY = "key";
 static String HOLD_NOTES = "holdNotes";
 static String OCTAVES = "octaves";
+static String SHORT_NOTATION = "shortNotation";
 static String CHORD_PLACEMENT = "chordPlacement";
 static String CHORD_FONT_BOLD = "chordFontBold";
 static String DARK_MODE = "darkMode";
@@ -52,6 +53,7 @@ private:
 	AudioParameterChoice* keyParameter;
 	std::atomic<float>* holdNotesParameter = nullptr;
 	std::atomic<float>* octavesParameter = nullptr;
+	std::atomic<float>* shortNotationParameter = nullptr;
 	std::atomic<float>* chordPlacementParameter = nullptr;
 	std::atomic<float>* chordFontBoldParameter = nullptr;
 	std::atomic<float>* darkModeParameter = nullptr;
