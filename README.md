@@ -17,3 +17,4 @@ A special acknowledgement must be made to Diego Merino, who had the original ide
 
 Another must mention, is that the chord recognition algorithm is based on the Chordback JSFX script written by Paul Heams. He can be contacted on X (Twitter) as @17BitRetro
 
+![2024-11-24-Readme-Image-Small](https://github.com/user-attachments/assets/18f34722-4248-4099-91fc-69e6a54ab7ec)
