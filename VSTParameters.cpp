@@ -28,7 +28,7 @@ VSTParameters::VSTParameters(AudioProcessor& processorRef, PluginModel& pluginMo
     pluginModel (pluginModelRef),
     parameters(processor, nullptr, juce::Identifier("GrandStaffMIDIVisualizerParameters"),
         {
-                std::make_unique<juce::AudioParameterChoice>(KEY, "Key", StringArray { "C", "C#", "Db", "D", "Eb", "E", "F", "F#", "Gb", "G", "Ab", "A", "Bb", "B", "Sharp", "Flat" }, 0),
+                std::make_unique<juce::AudioParameterChoice>(KEY, "Key", StringArray { "C", "C#", "Db", "D", "Eb", "E", "F", "F#", "Gb", "G", "Ab", "A", "Bb", "B", "Sharps", "Flats" }, 0),
                 std::make_unique<juce::AudioParameterBool>(HOLD_NOTES, "Hold Notes", false),
                 std::make_unique<juce::AudioParameterInt>(OCTAVES, "Octaves", -3, 3, 0),
                 std::make_unique<juce::AudioParameterBool>(SHORT_NOTATION, "Display chords with short notation", false),

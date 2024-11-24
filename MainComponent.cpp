@@ -95,8 +95,7 @@ void MainComponent::init(PluginModel* model)
     rightArrowButton.setButtonText(">");
     rightArrowButton.setTooltip("Octave up");
 
-    notationButton.addListener(this);
-    notationButton.setButtonText(L"∆");
+    notationButton.addListener(this);    
     notationButton.setTooltip("Short notation");
     notationButton.setToggleable(true);
     notationButton.setToggleState(pluginModel->shortNotation, false);
@@ -157,7 +156,8 @@ void MainComponent::updateColourScheme()
     {
         staffSvg = dmStaffSvg.get();
         noteSvg = dmNoteSvg.get();
-        sharpSvg = dmSharpSvg.get();
+        incrementSvg = dmIncrementSvg.get();
+        sharpSvg = dmSharpSvg.get();        
         flatSvg = dmFlatSvg.get();
         naturalSvg = dmNaturalSvg.get();
         doubleSharpSvg = dmDoubleSharpSvg.get();
@@ -179,6 +179,7 @@ void MainComponent::updateColourScheme()
     {
         staffSvg = lmStaffSvg.get();
         noteSvg = lmNoteSvg.get();
+        incrementSvg = lmIncrementSvg.get();
         sharpSvg = lmSharpSvg.get();
         flatSvg = lmFlatSvg.get();
         naturalSvg = lmNaturalSvg.get();
@@ -198,6 +199,7 @@ void MainComponent::updateColourScheme()
         keyMenu.setColour(juce::ComboBox::buttonColourId, juce::Colours::white);
     }
     holdNoteButton.setImages(noteSvg);
+    notationButton.setImages(incrementSvg);
 
     Button* buttons[] = { &holdNoteButton, &leftArrowButton, &rightArrowButton, &notationButton, &chordPlacementButton, &chordFontBoldButton, &darkModeButton };
     for (Button* button : buttons)
@@ -213,12 +215,12 @@ void MainComponent::updateColourScheme()
         {
             button->setColour(TextButton::textColourOnId, Colours::black);
             button->setColour(TextButton::textColourOffId, Colours::darkgrey);
-            button->setColour(TextButton::buttonColourId, Colours::lightgrey);
-            button->setColour(TextButton::buttonOnColourId, Colours::white);
+            button->setColour(TextButton::buttonOnColourId, Colours::lightgrey);
+            button->setColour(TextButton::buttonColourId, Colours::white);
         }
     }
 
-    Drawable* drawables[] = { lmStaffSvg.get(), lmNoteSvg.get(), lmSharpSvg.get(), lmFlatSvg.get(), lmNaturalSvg.get(), lmDoubleSharpSvg.get(), lmDoubleFlatSvg.get() };
+    Drawable* drawables[] = { lmStaffSvg.get(), lmNoteSvg.get(), lmIncrementSvg.get(), lmSharpSvg.get(), lmFlatSvg.get(), lmNaturalSvg.get(), lmDoubleSharpSvg.get(), lmDoubleFlatSvg.get() };
     for (Drawable* drawable : drawables)
     {
         if (pluginModel->darkMode)
@@ -242,6 +244,8 @@ void MainComponent::resized()
     int buttonSpace = buttonSize * 0.1;
     keyMenu.setBounds(buttonSpace * 2, buttonSpace * 2, buttonSize * 4, buttonSize);
     notationButton.setBounds(buttonSize * 4 + buttonSpace * 3, buttonSpace * 2, buttonSize * 1.1, buttonSize);
+//    incrementSvg->setBoundsToFit(Rectangle((int)(notationButton.getX() * 0.5), (int)(notationButton.getY() * 0.5), (int)(notationButton.getWidth() * 0.5), (int)(notationButton.getHeight() * 0.5)), Justification::centred, false);
+//    dmIncrementSvg->setBoundsToFit(Rectangle((int)(notationButton.getX() * 0.9), (int)(notationButton.getY() * 0.9), (int)(notationButton.getWidth() * 0.9), (int)(notationButton.getHeight() * 0.9)), Justification::centred, false);
     chordPlacementButton.setBounds(buttonSize * 5 + buttonSpace * 5, buttonSpace * 2, buttonSize * 1.1, buttonSize);
     chordFontBoldButton.setBounds(buttonSize * 6 + buttonSpace * 7, buttonSpace * 2, buttonSize * 1.1, buttonSize);
 
@@ -408,18 +412,25 @@ void MainComponent::paint(Graphics& g)
     };
     */    
 
+
+
     Rectangle<int> localBounds = getLocalBounds();
     int buttonHeight = getButtonHeight(localBounds);
     int buttonSpace = buttonHeight * 0.1;
+
+    Rectangle nb = notationButton.getBounds();
+    drawText(g, String(L"∆"), nb.getX(), nb.getY(), nb.getWidth(), nb.getHeight());
 
     g.fillAll(pluginModel->darkMode ? darkModeBackgroundColour : Colours::white);
     g.setColour(pluginModel->darkMode ? darkModeForegroundColour : Colours::black);
     if (pluginModel->chordPlacement == 3)
     {
-        float x = buttonSpace * 2;
-        float y = buttonHeight + buttonSpace * 3;
         float textWidth = localBounds.getWidth() - buttonSpace * 2;
-        float textHeight = localBounds.getHeight() - y - buttonSpace * 2;
+        float textHeight = textWidth / 7.5;
+        if (textHeight > localBounds.getHeight())
+            textHeight = localBounds.getHeight() - buttonSpace * 2;
+        float x = buttonSpace * 2;
+        float y = localBounds.getHeight() * 0.5 - textHeight * 0.5 + buttonSpace * 3;
         drawText(g, chord.name(pluginModel->shortNotation), x, y, textWidth, textHeight, false);
         return;
     }
@@ -570,7 +581,7 @@ void MainComponent::drawKeySignature(Graphics& g, StaffCalculator& staffCalculat
 {
     String keyName = keyMenu.getText();
     Key key = keys.getKey(keyName);
-    if (key.name == "Sharp" || key.name == "Flat")
+    if (key.name == "Sharps" || key.name == "Flats")
         return;
 
     if (key.numSharps > 0)

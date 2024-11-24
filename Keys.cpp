@@ -83,8 +83,8 @@ Keys::Keys()
 	addKey("Bb", std::list<String>({ "Bb","C","D","Eb","F","G","A"}), 0, 2);
 	addKey("B", std::list<String>({ "B","C#","D#","E","F#","G#","A#"}), 5, 0);		
 
-	addKey("Sharp", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
-	addKey("Flat", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
+	addKey("Sharps", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
+	addKey("Flats", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
 }
 
 void Keys::addKey(String name, std::list<String>& notes, int numSharps, int numFlats)

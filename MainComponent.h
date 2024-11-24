@@ -285,7 +285,8 @@ private:
 class MainComponent final : public Component, public Button::Listener {
 public:
     MainComponent(PluginModel* model) :
-        holdNoteButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
+        holdNoteButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground),
+        notationButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
     {
         init(model);
     }
@@ -314,6 +315,7 @@ private:
 
     const std::unique_ptr<Drawable> lmStaffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_02_svg, BinaryData::Grand_staff_02_svgSize);
     const std::unique_ptr<Drawable> lmNoteSvg = Drawable::createFromImageData(BinaryData::Whole_note_svg, BinaryData::Whole_note_svgSize);
+    const std::unique_ptr<Drawable> lmIncrementSvg = Drawable::createFromImageData(BinaryData::Increment_Symbol_svg, BinaryData::Increment_Symbol_svgSize);
     const std::unique_ptr<Drawable> lmSharpSvg = Drawable::createFromImageData(BinaryData::Sharp_svg, BinaryData::Sharp_svgSize);
     const std::unique_ptr<Drawable> lmFlatSvg = Drawable::createFromImageData(BinaryData::Flat_svg, BinaryData::Flat_svgSize);
     const std::unique_ptr<Drawable> lmNaturalSvg = Drawable::createFromImageData(BinaryData::Natural_svg, BinaryData::Natural_svgSize);
@@ -322,6 +324,7 @@ private:
 
     const std::unique_ptr<Drawable> dmStaffSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Grand_Staff_svg, BinaryData::Dark_Mode_Grand_Staff_svgSize);
     const std::unique_ptr<Drawable> dmNoteSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Whole_Note_svg, BinaryData::Dark_Mode_Whole_Note_svgSize);
+    const std::unique_ptr<Drawable> dmIncrementSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Increment_Symbol_svg, BinaryData::Dark_Mode_Increment_Symbol_svgSize);
     const std::unique_ptr<Drawable> dmSharpSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Sharp_svg, BinaryData::Dark_Mode_Sharp_svgSize);
     const std::unique_ptr<Drawable> dmFlatSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Flat_svg, BinaryData::Dark_Mode_Flat_svgSize);
     const std::unique_ptr<Drawable> dmNaturalSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Natural_svg, BinaryData::Dark_Mode_Natural_svgSize);
@@ -330,6 +333,7 @@ private:
 
     Drawable* staffSvg = nullptr;
     Drawable* noteSvg = nullptr;
+    Drawable* incrementSvg = nullptr;
     Drawable* sharpSvg = nullptr;
     Drawable* flatSvg = nullptr;
     Drawable* naturalSvg = nullptr;
@@ -340,7 +344,7 @@ private:
     DrawableButton holdNoteButton;
     TextButton leftArrowButton;
     Label octaveLabel;
-    TextButton notationButton;
+    DrawableButton notationButton;
     TextButton rightArrowButton;
     TextButton chordPlacementButton;
     TextButton chordFontBoldButton;
