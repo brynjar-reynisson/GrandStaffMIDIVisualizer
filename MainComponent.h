@@ -32,6 +32,10 @@ static Colour darkModeForegroundColour(236, 236, 236);
 static Colour darkModeBackgroundColour(36, 33, 33);
 static Colour darkModeSelectedBackgroundColour(95, 95, 95);
 
+static Typeface::Ptr customFontTypeface = Typeface::createSystemTypefaceFor(BinaryData::consola_ttf, BinaryData::consola_ttfSize);
+static Font plainCustomFont = Font(customFontTypeface).withTypefaceStyle("Plain");
+static Font boldCustomFont = Font(Typeface::createSystemTypefaceFor(BinaryData::consola_ttf, BinaryData::consola_ttfSize)).withTypefaceStyle("Bold");
+
 //==============================================================================
 enum ChordType
 {
@@ -282,11 +286,77 @@ public:
 private:
 };
 //==============================================================================
+class CustomDrawableButton : public DrawableButton
+{
+public:
+    CustomDrawableButton(const String& buttonName,
+        ButtonStyle buttonStyle) : DrawableButton(buttonName, buttonStyle)
+    {
+    };
+
+    /*
+    * This method allows sizing and placing the images any way one wants to inside the button bounds
+    */
+    virtual Rectangle<float> getImageBounds() const override
+    {
+        //return Rectangle<float>(2, 2, getBounds().getWidth() - 4, getBounds().getHeight() - 4);
+        return Rectangle<float>(5, 5, 10, 10);
+    };
+
+private:
+};
+//==============================================================================
+
+static float fontHeightMultiplier = 0.7;
+static LookAndFeel* defaultLookAndFeel = nullptr;
+
+class CustomFontLookAndFeel : public LookAndFeel_V4
+{
+public:
+    CustomFontLookAndFeel()
+    {
+        //defaultLookAndFeel = &(LookAndFeel::getDefaultLookAndFeel());
+        //LookAndFeel::setDefaultLookAndFeel(this);
+    }
+
+    Font getTextButtonFont(TextButton& textButton, int buttonHeight)
+    {
+        return plainCustomFont.withHeight(buttonHeight * fontHeightMultiplier);
+    }
+
+    Font getLabelFont(Label& l)
+    {
+        return plainCustomFont.withHeight(l.getBounds().getHeight() * fontHeightMultiplier);
+    }
+
+    Font getComboBoxFont(ComboBox& c) 
+    {
+        return plainCustomFont.withHeight(c.getBounds().getHeight() * fontHeightMultiplier);
+    }
+
+    Font getPopupMenuFont() 
+    {
+        return plainCustomFont;
+    }
+
+    static Font getCustomFont()
+    {
+        plainCustomFont.setTypefaceName("Consolas");
+        plainCustomFont.setTypefaceStyle("Plain");
+        return plainCustomFont;
+    }
+
+    Typeface::Ptr getTypefaceForFont(const Font& f) override
+    {
+        return customFontTypeface;
+    }
+};
+//==============================================================================
 class MainComponent final : public Component, public Button::Listener {
 public:
     MainComponent(PluginModel* model) :
-        holdNoteButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground),
-        notationButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
+        holdNoteButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
+        //notationButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
     {
         init(model);
     }
@@ -294,6 +364,14 @@ public:
     {
         pluginModel->paramChangedFromHost = nullptr;
         keyMenu.setLookAndFeel(nullptr);
+        notationButton.setLookAndFeel(nullptr);
+        chordFontBoldButton.setLookAndFeel(nullptr);
+        darkModeButton.setLookAndFeel(nullptr);
+        chordPlacementButton.setLookAndFeel(nullptr);
+        holdNoteButton.setLookAndFeel(nullptr);
+        leftArrowButton.setLookAndFeel(nullptr);
+        rightArrowButton.setLookAndFeel(nullptr);
+        octaveLabel.setLookAndFeel(nullptr);
     }
     void paint(Graphics& g) override;
     void resized() override;
@@ -312,6 +390,7 @@ private:
     void drawSharps(Graphics& g, StaffCalculator& staffCalculator, int numSharps);
     void drawFlats(Graphics& g, StaffCalculator& staffCalculator, int numFlats);
     void drawText(Graphics& g, String text, float x, float y, float width, float height, bool left = true);
+
 
     const std::unique_ptr<Drawable> lmStaffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_02_svg, BinaryData::Grand_staff_02_svgSize);
     const std::unique_ptr<Drawable> lmNoteSvg = Drawable::createFromImageData(BinaryData::Whole_note_svg, BinaryData::Whole_note_svgSize);
@@ -344,7 +423,7 @@ private:
     DrawableButton holdNoteButton;
     TextButton leftArrowButton;
     Label octaveLabel;
-    DrawableButton notationButton;
+    TextButton notationButton;
     TextButton rightArrowButton;
     TextButton chordPlacementButton;
     TextButton chordFontBoldButton;
@@ -357,8 +436,9 @@ private:
     Chord chord;
 
     TooltipWindow tooltipWindow{ this }; // instance required for ToolTips to work
-    LookAndFeel_V4 darkLookAndFeel;
-    LookAndFeel_V4 lightLookAndFeel;
+    CustomFontLookAndFeel darkLookAndFeel;
+    CustomFontLookAndFeel lightLookAndFeel;
+    CustomFontLookAndFeel customFontLookAndFeel;
 };
 
 static int getButtonHeight(Rectangle<int> bounds)
@@ -367,3 +447,4 @@ static int getButtonHeight(Rectangle<int> bounds)
     int calculatedButtonHeight = bounds.getHeight() * 0.05;
     return std::max((int)calculatedButtonHeight, minButtonHeight);
 }
+
