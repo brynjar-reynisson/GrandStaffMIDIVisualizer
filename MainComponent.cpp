@@ -267,6 +267,7 @@ void MainComponent::buttonClicked(juce::Button* button)
         for (int i = 0; i < 127; i++)
             pluginModel->midiNotes[i] = 0;
         pluginModel->holdNotes = holdNoteButton.getToggleState();
+        onMidiChanged();
     }
     else if (button == &leftArrowButton)
     {
