@@ -27,7 +27,7 @@
 
 static const Font getCustomFont(bool bold = true)
 {
-    return Font(Typeface::createSystemTypefaceFor(BinaryData::consola_ttf, BinaryData::consola_ttfSize)).withTypefaceStyle(bold ? "Bold" : "Plain");
+    return bold ? boldCustomFont : plainCustomFont;
 }
 
 void MainComponent::onParametersChanged()
@@ -60,12 +60,36 @@ void MainComponent::init(PluginModel* model)
     this->pluginModel = model;
     pluginModel->paramChangedFromHost = [&] { onParametersChanged(); };
 
+    lightLookAndFeel.setColour(TextButton::textColourOnId, Colours::black);
+    lightLookAndFeel.setColour(TextButton::textColourOffId, Colours::darkgrey);
+    lightLookAndFeel.setColour(TextButton::buttonOnColourId, Colours::lightgrey);
+    lightLookAndFeel.setColour(TextButton::buttonColourId, Colours::white);
+    lightLookAndFeel.setColour(Label::textColourId, Colours::black);
+    lightLookAndFeel.setColour(Label::backgroundColourId, Colour(230, 230, 230));
+    lightLookAndFeel.setColour(ComboBox::outlineColourId, Colours::black);
+    lightLookAndFeel.setColour(ComboBox::focusedOutlineColourId, Colours::black);
+    lightLookAndFeel.setColour(ComboBox::textColourId, Colours::black);
+    lightLookAndFeel.setColour(ComboBox::arrowColourId, Colours::darkgrey);
+    lightLookAndFeel.setColour(ComboBox::backgroundColourId, Colours::white);
+    lightLookAndFeel.setColour(ComboBox::buttonColourId, Colours::white);
     lightLookAndFeel.setColour(PopupMenu::backgroundColourId, Colours::white);
     lightLookAndFeel.setColour(PopupMenu::headerTextColourId, Colours::black);
     lightLookAndFeel.setColour(PopupMenu::highlightedBackgroundColourId, Colours::lightgrey);
     lightLookAndFeel.setColour(PopupMenu::highlightedTextColourId, Colours::black);
     lightLookAndFeel.setColour(PopupMenu::textColourId, Colours::black);
 
+    darkLookAndFeel.setColour(TextButton::textColourOnId, darkModeForegroundColour);
+    darkLookAndFeel.setColour(TextButton::textColourOffId, darkModeForegroundColour);
+    darkLookAndFeel.setColour(TextButton::buttonColourId, darkModeBackgroundColour);
+    darkLookAndFeel.setColour(TextButton::buttonOnColourId, darkModeSelectedBackgroundColour);
+    darkLookAndFeel.setColour(Label::textColourId, darkModeForegroundColour);
+    darkLookAndFeel.setColour(Label::backgroundColourId, darkModeSelectedBackgroundColour);
+    darkLookAndFeel.setColour(ComboBox::outlineColourId, darkModeForegroundColour);
+    darkLookAndFeel.setColour(ComboBox::focusedOutlineColourId, Colours::white);
+    darkLookAndFeel.setColour(ComboBox::textColourId, darkModeForegroundColour);
+    darkLookAndFeel.setColour(ComboBox::arrowColourId, darkModeForegroundColour);
+    darkLookAndFeel.setColour(ComboBox::backgroundColourId, darkModeBackgroundColour);
+    darkLookAndFeel.setColour(ComboBox::buttonColourId, darkModeBackgroundColour);
     darkLookAndFeel.setColour(PopupMenu::backgroundColourId, darkModeBackgroundColour);
     darkLookAndFeel.setColour(PopupMenu::headerTextColourId, darkModeForegroundColour);
     darkLookAndFeel.setColour(PopupMenu::highlightedBackgroundColourId, darkModeSelectedBackgroundColour);
@@ -82,13 +106,13 @@ void MainComponent::init(PluginModel* model)
     {
         keyMenu.addItem(key, i++);
     }
+    keyMenu.setJustificationType(Justification::centred);    
     keyMenu.setSelectedItemIndex(1);
     keyMenu.onChange = [this] { keyMenuChanged(); };
 
     leftArrowButton.addListener(this);
     leftArrowButton.setButtonText("<");
     leftArrowButton.setTooltip("Octave down");
-
     octaveLabel.setJustificationType(juce::Justification::centred);
 
     rightArrowButton.addListener(this);
@@ -96,6 +120,8 @@ void MainComponent::init(PluginModel* model)
     rightArrowButton.setTooltip("Octave up");
 
     notationButton.addListener(this);    
+    //notationButton.setButtonText(L"∆"); //this doesn't work, we must use the escape sequence below
+    notationButton.setButtonText(juce::CharPointer_UTF8("\xe2\x88\x86"));
     notationButton.setTooltip("Short notation");
     notationButton.setToggleable(true);
     notationButton.setToggleState(pluginModel->shortNotation, false);
@@ -152,8 +178,10 @@ void MainComponent::updateChordPlacementButton()
 
 void MainComponent::updateColourScheme()
 {
+    CustomFontLookAndFeel* lookAndFeel = nullptr;
     if (pluginModel->darkMode)
     {
+        lookAndFeel = &darkLookAndFeel;
         staffSvg = dmStaffSvg.get();
         noteSvg = dmNoteSvg.get();
         incrementSvg = dmIncrementSvg.get();
@@ -163,20 +191,11 @@ void MainComponent::updateColourScheme()
         doubleSharpSvg = dmDoubleSharpSvg.get();
         doubleFlatSvg = dmDoubleFlatSvg.get();
 
-        octaveLabel.setColour(juce::Label::textColourId, darkModeForegroundColour);
-        octaveLabel.setColour(juce::Label::backgroundColourId, darkModeSelectedBackgroundColour);
         darkModeButton.setToggleState(true, false);
-
-        keyMenu.setLookAndFeel(&darkLookAndFeel);
-        keyMenu.setColour(juce::ComboBox::outlineColourId, darkModeForegroundColour);
-        keyMenu.setColour(juce::ComboBox::focusedOutlineColourId, Colours::white);
-        keyMenu.setColour(juce::ComboBox::textColourId, darkModeForegroundColour);
-        keyMenu.setColour(juce::ComboBox::arrowColourId, darkModeForegroundColour);
-        keyMenu.setColour(juce::ComboBox::backgroundColourId, darkModeBackgroundColour);
-        keyMenu.setColour(juce::ComboBox::buttonColourId, darkModeBackgroundColour);
     }
     else
     {
+        lookAndFeel = &lightLookAndFeel;
         staffSvg = lmStaffSvg.get();
         noteSvg = lmNoteSvg.get();
         incrementSvg = lmIncrementSvg.get();
@@ -186,51 +205,16 @@ void MainComponent::updateColourScheme()
         doubleSharpSvg = lmDoubleSharpSvg.get();
         doubleFlatSvg = lmDoubleFlatSvg.get();
 
-        octaveLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-        octaveLabel.setColour(juce::Label::backgroundColourId, Colour(230, 230, 230));
         darkModeButton.setToggleState(false, false);
-
-        keyMenu.setLookAndFeel(&lightLookAndFeel);
-        keyMenu.setColour(juce::ComboBox::outlineColourId, juce::Colours::black);
-        keyMenu.setColour(juce::ComboBox::focusedOutlineColourId, juce::Colours::black);
-        keyMenu.setColour(juce::ComboBox::textColourId, juce::Colours::black);
-        keyMenu.setColour(juce::ComboBox::arrowColourId, juce::Colours::darkgrey);
-        keyMenu.setColour(juce::ComboBox::backgroundColourId, juce::Colours::white);
-        keyMenu.setColour(juce::ComboBox::buttonColourId, juce::Colours::white);
     }
+    keyMenu.setLookAndFeel(lookAndFeel);
+    octaveLabel.setLookAndFeel(lookAndFeel);
     holdNoteButton.setImages(noteSvg);
-    notationButton.setImages(incrementSvg);
 
     Button* buttons[] = { &holdNoteButton, &leftArrowButton, &rightArrowButton, &notationButton, &chordPlacementButton, &chordFontBoldButton, &darkModeButton };
     for (Button* button : buttons)
     {
-        if (pluginModel->darkMode)
-        {
-            button->setColour(TextButton::textColourOnId, darkModeForegroundColour);
-            button->setColour(TextButton::textColourOffId, darkModeForegroundColour);
-            button->setColour(TextButton::buttonColourId, darkModeBackgroundColour);
-            button->setColour(TextButton::buttonOnColourId, darkModeSelectedBackgroundColour);
-        }
-        else
-        {
-            button->setColour(TextButton::textColourOnId, Colours::black);
-            button->setColour(TextButton::textColourOffId, Colours::darkgrey);
-            button->setColour(TextButton::buttonOnColourId, Colours::lightgrey);
-            button->setColour(TextButton::buttonColourId, Colours::white);
-        }
-    }
-
-    Drawable* drawables[] = { lmStaffSvg.get(), lmNoteSvg.get(), lmIncrementSvg.get(), lmSharpSvg.get(), lmFlatSvg.get(), lmNaturalSvg.get(), lmDoubleSharpSvg.get(), lmDoubleFlatSvg.get() };
-    for (Drawable* drawable : drawables)
-    {
-        if (pluginModel->darkMode)
-        {
-            drawable->replaceColour(Colours::black, darkModeForegroundColour);
-        }
-        else
-        {
-            drawable->replaceColour(darkModeForegroundColour, Colours::black);
-        }
+        button->setLookAndFeel(lookAndFeel);
     }
 }
 
@@ -243,12 +227,10 @@ void MainComponent::resized()
     int buttonSize = getButtonHeight(bounds);
     int buttonSpace = buttonSize * 0.1;
     keyMenu.setBounds(buttonSpace * 2, buttonSpace * 2, buttonSize * 4, buttonSize);
+
     notationButton.setBounds(buttonSize * 4 + buttonSpace * 3, buttonSpace * 2, buttonSize * 1.1, buttonSize);
-//    incrementSvg->setBoundsToFit(Rectangle((int)(notationButton.getX() * 0.5), (int)(notationButton.getY() * 0.5), (int)(notationButton.getWidth() * 0.5), (int)(notationButton.getHeight() * 0.5)), Justification::centred, false);
-//    dmIncrementSvg->setBoundsToFit(Rectangle((int)(notationButton.getX() * 0.9), (int)(notationButton.getY() * 0.9), (int)(notationButton.getWidth() * 0.9), (int)(notationButton.getHeight() * 0.9)), Justification::centred, false);
     chordPlacementButton.setBounds(buttonSize * 5 + buttonSpace * 5, buttonSpace * 2, buttonSize * 1.1, buttonSize);
     chordFontBoldButton.setBounds(buttonSize * 6 + buttonSpace * 7, buttonSpace * 2, buttonSize * 1.1, buttonSize);
-
     darkModeButton.setBounds(bounds.getWidth() - buttonSize * 6.6 - buttonSpace * 4, buttonSpace * 2, buttonSize * 1.1, buttonSize);
     holdNoteButton.setBounds(bounds.getWidth() - buttonSize * 5.5 - buttonSpace * 3, buttonSpace * 2, buttonSize * 1.1, buttonSize);
     leftArrowButton.setBounds(bounds.getWidth() - buttonSize * 4.4 - buttonSpace * 2, buttonSpace * 2, buttonSize * 1.1, buttonSize);
@@ -418,8 +400,8 @@ void MainComponent::paint(Graphics& g)
     int buttonHeight = getButtonHeight(localBounds);
     int buttonSpace = buttonHeight * 0.1;
 
-    Rectangle nb = notationButton.getBounds();
-    drawText(g, String(L"∆"), nb.getX(), nb.getY(), nb.getWidth(), nb.getHeight());
+    //Rectangle nb = notationButton.getBounds();
+    //drawText(g, String(L"∆"), nb.getX(), nb.getY(), nb.getWidth(), nb.getHeight());
 
     g.fillAll(pluginModel->darkMode ? darkModeBackgroundColour : Colours::white);
     g.setColour(pluginModel->darkMode ? darkModeForegroundColour : Colours::black);
@@ -627,3 +609,9 @@ void MainComponent::keyMenuChanged()
     NullCheckedInvocation::invoke(pluginModel->paramChangedFromUI);
     repaint();
 }
+/*
+Font TextButtonCustomFontLookAndFeel::getTextButtonFont(TextButton& textButton, int buttonHeight)
+{
+    return plainCustomFont;
+}
+*/

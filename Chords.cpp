@@ -33,6 +33,9 @@ Chord::Chord(ChordPattern pattern, String rootNote, String bassNote)
 
 String Chord::name(bool shortName)
 {
+	if (pattern.chordType == EasterEgg)
+		return pattern.name;
+
 	String chordName = rootNote;
 	chordName += shortName ? pattern.shortName : pattern.name;
 	if (bassNote.length() > 0)
