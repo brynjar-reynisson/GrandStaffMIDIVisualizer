@@ -4,7 +4,7 @@
 
 This plugin shows on the Grand Staff what MIDI notes are being played at each time. It will also display chord names if a matching chord type is found. In order to build it, one must install the JUCE framework: https://juce.com/download/
 
-A special acknowledgement must be made to Diego Merino, who had the original idea and has been helping me to refine this work. He created <ins>**the chords definition table**</ins>, as well as many of the graphics used here. All the recognized chord patterns are found here: https://github.com/brynjar-reynisson/GrandStaffMIDIVisualizer/blob/main/ChordDefinitions.cpp
+A special acknowledgement must be made to Diego Merino, who had the original idea and has been helping me to refine this work. He created the chords definition table, as well as many of the graphics used here. All the recognized chord patterns are found here: https://github.com/brynjar-reynisson/GrandStaffMIDIVisualizer/blob/main/ChordDefinitions.cpp
 
 Another must mention, is that the chord recognition algorithm is based on the Chordback JSFX script written by Paul Heams. He can be contacted on X (Twitter) as @17BitRetro
 
