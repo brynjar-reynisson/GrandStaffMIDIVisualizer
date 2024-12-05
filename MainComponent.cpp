@@ -401,20 +401,15 @@ void MainComponent::paint(Graphics& g)
     int buttonHeight = getButtonHeight(localBounds);
     int buttonSpace = buttonHeight * 0.1;
 
-    //Rectangle nb = notationButton.getBounds();
-    //drawText(g, String(L"∆"), nb.getX(), nb.getY(), nb.getWidth(), nb.getHeight());
-
     g.fillAll(pluginModel->darkMode ? darkModeBackgroundColour : Colours::white);
     g.setColour(pluginModel->darkMode ? darkModeForegroundColour : Colours::black);
     if (pluginModel->chordPlacement == 3)
     {
-        float textWidth = localBounds.getWidth() - buttonSpace * 2;
-        float textHeight = textWidth / 7.5;
-        if (textHeight > localBounds.getHeight())
-            textHeight = localBounds.getHeight() - buttonSpace * 2;
-        float x = buttonSpace * 2;
-        float y = localBounds.getHeight() * 0.5 - textHeight * 0.5 + buttonSpace * 3;
-        drawText(g, chord.name(pluginModel->shortNotation), x, y, textWidth, textHeight, false);
+        float textWidth = localBounds.getWidth() - buttonSpace * 4;
+        float textHeight = localBounds.getHeight() - buttonHeight - buttonSpace * 2;
+        float x = buttonSpace * 4;
+        float y = buttonHeight + buttonSpace;
+        drawText(g, chord.name(pluginModel->shortNotation), x, y, textWidth, textHeight, true);
         return;
     }
 
