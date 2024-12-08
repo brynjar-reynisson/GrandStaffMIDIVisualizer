@@ -9,6 +9,7 @@
               jucerFormatVersion="1">
   <MAINGROUP id="bMaV9S" name="GrandStaffMIDIVisualizer">
     <GROUP id="{0C99DFAA-E7F1-9A2E-0E53-E2048698FFA0}" name="Source">
+      <FILE id="PDABVW" name="FadeOut.cpp" compile="1" resource="0" file="../FadeOut.cpp"/>
       <FILE id="Z8jtNV" name="Increment_Symbol.svg" compile="0" resource="1"
             file="../Increment_Symbol.svg"/>
       <FILE id="hK8bpA" name="Dark_Mode_Increment_Symbol.svg" compile="0"
@@ -61,6 +62,7 @@
     </GROUP>
   </MAINGROUP>
   <MODULES>
+    <MODULE id="juce_animation" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
@@ -94,6 +96,7 @@
         <MODULEPATH id="juce_graphics" path=""/>
         <MODULEPATH id="juce_gui_basics" path=""/>
         <MODULEPATH id="juce_gui_extra" path=""/>
+        <MODULEPATH id="juce_animation" path="../../../modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <VS2022 targetFolder="Builds/VisualStudio2022" extraCompilerFlags="/bigobj"
@@ -117,6 +120,7 @@
         <MODULEPATH id="juce_graphics" path=""/>
         <MODULEPATH id="juce_gui_basics" path=""/>
         <MODULEPATH id="juce_gui_extra" path=""/>
+        <MODULEPATH id="juce_animation" path="../../../modules"/>
       </MODULEPATHS>
     </VS2022>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" bigIcon="llnL4s">
@@ -137,6 +141,7 @@
         <MODULEPATH id="juce_graphics" path=""/>
         <MODULEPATH id="juce_gui_basics" path=""/>
         <MODULEPATH id="juce_gui_extra" path=""/>
+        <MODULEPATH id="juce_animation" path="../../../modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
   </EXPORTFORMATS>

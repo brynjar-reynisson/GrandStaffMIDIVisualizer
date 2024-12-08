@@ -36,6 +36,14 @@ static Typeface::Ptr customFontTypeface = Typeface::createSystemTypefaceFor(Bina
 static Font plainCustomFont = Font(customFontTypeface).withTypefaceStyle("Plain");
 static Font boldCustomFont = Font(Typeface::createSystemTypefaceFor(BinaryData::consola_ttf, BinaryData::consola_ttfSize)).withTypefaceStyle("Bold");
 
+
+static int floatToInt(float value)
+{
+    return static_cast<int>(round(value));
+};
+
+
+
 //==============================================================================
 enum ChordType
 {
@@ -352,12 +360,53 @@ public:
     }
 };
 //==============================================================================
+class FadeOut final {
+public:
+    FadeOut(Component* owner, PluginModel* model) :
+        updater(owner)
+    {        
+        this->owner = owner;
+        this->model = model;
+    }
+
+    void init();
+    void start();
+    void stop();
+    Colour getColour();
+    bool isRunning()
+    {
+        return running;
+    }
+
+    std::function<void()> onStopped;
+private:
+    std::function<float(float)> createFadeOutIndexes();
+    void valueChangedCallback(float value);
+
+    Component* owner;
+    PluginModel* model;
+    bool running = false;
+
+    int colourIndex = 0;
+    VBlankAnimatorUpdater updater;
+
+    Animator animator = juce::ValueAnimatorBuilder{}
+        .withEasing(createFadeOutIndexes())
+        .withDurationMs(1000)
+        .withValueChangedCallback([this](auto value) {
+            valueChangedCallback(value);
+        })
+        .build();
+};
+//==============================================================================
 class MainComponent final : public Component, public Button::Listener {
 public:
     MainComponent(PluginModel* model) :
+        chordFadeOut(this, model),
         holdNoteButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
         //notationButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
     {
+        chordFadeOut.init();
         init(model);
     }
     ~MainComponent()
@@ -390,6 +439,7 @@ private:
     void drawSharps(Graphics& g, StaffCalculator& staffCalculator, int numSharps);
     void drawFlats(Graphics& g, StaffCalculator& staffCalculator, int numFlats);
     void drawText(Graphics& g, String text, float x, float y, float width, float height, bool left = true);
+    void onChordFadeOutStopped();
 
 
     const std::unique_ptr<Drawable> lmStaffSvg = Drawable::createFromImageData(BinaryData::Grand_staff_02_svg, BinaryData::Grand_staff_02_svgSize);
@@ -439,6 +489,8 @@ private:
     CustomFontLookAndFeel darkLookAndFeel;
     CustomFontLookAndFeel lightLookAndFeel;
     CustomFontLookAndFeel customFontLookAndFeel;
+
+    FadeOut chordFadeOut;
 };
 
 static int getButtonHeight(Rectangle<int> bounds)
