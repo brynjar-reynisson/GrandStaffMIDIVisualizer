@@ -53,12 +53,17 @@ void MainComponent::onMidiChanged()
 
     chord = nullChord;
     chords.name(this->midiNotes, keys.getKey(keyMenu.getText()), chord);
+    if (chord.name().length() != 0 && chordFadeOut.isRunning())
+    {
+        chordFadeOut.stop();
+    }
 }
 
 void MainComponent::init(PluginModel* model)
 {
     this->pluginModel = model;
     pluginModel->paramChangedFromHost = [&] { onParametersChanged(); };
+    chordFadeOut.onStopped = [&] { onChordFadeOutStopped(); };
 
     lightLookAndFeel.setColour(TextButton::textColourOnId, Colours::black);
     lightLookAndFeel.setColour(TextButton::textColourOffId, Colours::darkgrey);
@@ -238,11 +243,14 @@ void MainComponent::resized()
     rightArrowButton.setBounds(bounds.getWidth() - buttonSize * 1.1 - buttonSpace * 2, buttonSpace * 2, buttonSize * 1.1, buttonSize);
 }
 
+static String lastChordName;
+
 void MainComponent::buttonClicked(juce::Button* button)
 {
     pluginModel->hasUIChanges = true;
     if (button == &holdNoteButton)
     {
+        lastChordName = "";
         this->midiNotes.clear();
         bool curMode = holdNoteButton.getToggleState();
         holdNoteButton.setToggleState(!curMode, false);
@@ -377,25 +385,38 @@ void MainComponent::drawText(Graphics& g, String text, float x, float y, float w
 {
     AttributedString chordStr;
     chordStr.setText(text);
-    chordStr.setColour(pluginModel->darkMode ? darkModeForegroundColour : Colours::black);
+    chordStr.setColour(chordFadeOut.getColour());
     chordStr.setFont(getCustomFont(pluginModel->chordFontBold).withHeight(height));
     chordStr.setWordWrap(juce::AttributedString::WordWrap::none);
     chordStr.setJustification(left ? juce::Justification::left : juce::Justification::centred);
     chordStr.draw(g, Rectangle<float>(x, y, width, height));
 }
 
+
+void MainComponent::onChordFadeOutStopped()
+{
+    lastChordName = "";
+}
+
+static float lastChordX = 0, lastChordY = 0, lastTextWidth = 0, lastTextHeight = 0;
+
 void MainComponent::paint(Graphics& g)
 {
     if (pluginModel->hasParamChanges)
         onParametersChanged();
 
-    /*
-    std::set<int> midiNotes{
-        54, 57, 60, 63
-    };
-    */    
-
-
+    String chordName(chord.name(pluginModel->shortNotation));
+    if (chordName.length() == 0)
+    {
+        if (lastChordName.length() != 0)
+        {
+            chordName = lastChordName;
+            if (!chordFadeOut.isRunning())
+                chordFadeOut.start();
+        }
+    }
+    else
+        lastChordName = chordName;
 
     Rectangle<int> localBounds = getLocalBounds();
     int buttonHeight = getButtonHeight(localBounds);
@@ -409,7 +430,7 @@ void MainComponent::paint(Graphics& g)
         float textHeight = localBounds.getHeight() - buttonHeight - buttonSpace * 2;
         float x = buttonSpace * 4;
         float y = buttonHeight + buttonSpace;
-        drawText(g, chord.name(pluginModel->shortNotation), x, y, textWidth, textHeight, true);
+        drawText(g, chordName, x, y, textWidth, textHeight, true);
         return;
     }
 
@@ -502,7 +523,11 @@ void MainComponent::paint(Graphics& g)
                     chordX = buttonSpace * 6;
                     chordY = localBounds.getHeight() - textHeight - buttonSpace * 4;
                 }
-                drawText(g, chord.name(pluginModel->shortNotation), chordX, chordY, textWidth, textHeight);
+                lastChordX = chordX;
+                lastChordY = chordY;
+                lastTextWidth = textWidth;
+                lastTextHeight = textHeight;
+                drawText(g, chordName, chordX, chordY, textWidth, textHeight);
             }
             firstNote = false;
         }
@@ -535,6 +560,10 @@ void MainComponent::paint(Graphics& g)
         {
             doubleFlatSvg->drawWithin(g, Rectangle<float>(accentX, noteDrawInfos[midiNote].y - staffCalculator.noteHeight * 1.25, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5f), juce::RectanglePlacement::Flags::xLeft, 1.0);
         }
+    }
+    if (chordFadeOut.isRunning())
+    {
+        drawText(g, chordName, lastChordX, lastChordY, lastTextWidth, lastTextHeight);
     }
 }
 
