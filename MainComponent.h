@@ -307,8 +307,9 @@ public:
     */
     virtual Rectangle<float> getImageBounds() const override
     {
-        //return Rectangle<float>(2, 2, getBounds().getWidth() - 4, getBounds().getHeight() - 4);
-        return Rectangle<float>(5, 5, 10, 10);
+        int width = getBounds().getWidth();
+        int height = getBounds().getHeight();
+        return Rectangle<float>(width * 0.33, height * 0.33, width * 0.33, height * 0.33);
     };
 
 private:
@@ -403,7 +404,8 @@ class MainComponent final : public Component, public Button::Listener {
 public:
     MainComponent(PluginModel* model) :
         chordFadeOut(this, model),
-        holdNoteButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
+        holdNoteButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground),
+        chordPlacementButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
         //notationButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
     {
         chordFadeOut.init();
@@ -450,6 +452,9 @@ private:
     const std::unique_ptr<Drawable> lmNaturalSvg = Drawable::createFromImageData(BinaryData::Natural_svg, BinaryData::Natural_svgSize);
     const std::unique_ptr<Drawable> lmDoubleSharpSvg = Drawable::createFromImageData(BinaryData::DoubleSharp_svg, BinaryData::DoubleSharp_svgSize);
     const std::unique_ptr<Drawable> lmDoubleFlatSvg = Drawable::createFromImageData(BinaryData::DoubleFlat_svg, BinaryData::DoubleFlat_svgSize);
+    const std::unique_ptr<Drawable> lmArrowDownSvg = Drawable::createFromImageData(BinaryData::ArrowDown_svg, BinaryData::ArrowDown_svgSize);
+    const std::unique_ptr<Drawable> lmArrowRightSvg = Drawable::createFromImageData(BinaryData::ArrowRight_svg, BinaryData::ArrowRight_svgSize);
+    const std::unique_ptr<Drawable> lmArrowUpSvg = Drawable::createFromImageData(BinaryData::ArrowUp_svg, BinaryData::ArrowUp_svgSize);
 
     const std::unique_ptr<Drawable> dmStaffSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Grand_Staff_svg, BinaryData::Dark_Mode_Grand_Staff_svgSize);
     const std::unique_ptr<Drawable> dmNoteSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Whole_Note_svg, BinaryData::Dark_Mode_Whole_Note_svgSize);
@@ -459,15 +464,24 @@ private:
     const std::unique_ptr<Drawable> dmNaturalSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Natural_svg, BinaryData::Dark_Mode_Natural_svgSize);
     const std::unique_ptr<Drawable> dmDoubleSharpSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Double_Sharp_svg, BinaryData::Dark_Mode_Double_Sharp_svgSize);
     const std::unique_ptr<Drawable> dmDoubleFlatSvg = Drawable::createFromImageData(BinaryData::Dark_Mode_Double_Flat_svg, BinaryData::Dark_Mode_Double_Flat_svgSize);
+    const std::unique_ptr<Drawable> dmArrowDownSvg = Drawable::createFromImageData(BinaryData::ArrowDownDarkMode_svg, BinaryData::ArrowDownDarkMode_svgSize);
+    const std::unique_ptr<Drawable> dmArrowRightSvg = Drawable::createFromImageData(BinaryData::ArrowRightDarkMode_svg, BinaryData::ArrowRightDarkMode_svgSize);
+    const std::unique_ptr<Drawable> dmArrowUpSvg = Drawable::createFromImageData(BinaryData::ArrowUpDarkMode_svg, BinaryData::ArrowUpDarkMode_svgSize);
+
+    const std::unique_ptr<Drawable> blankSvg = Drawable::createFromImageData(BinaryData::Blank_svg, BinaryData::Blank_svgSize);
 
     Drawable* staffSvg = nullptr;
     Drawable* noteSvg = nullptr;
     Drawable* incrementSvg = nullptr;
+    Drawable* arrowDownSvg = nullptr;
+    Drawable* arrowRightSvg = nullptr;
+    Drawable* arrowUpSvg = nullptr;
     Drawable* sharpSvg = nullptr;
     Drawable* flatSvg = nullptr;
     Drawable* naturalSvg = nullptr;
     Drawable* doubleSharpSvg = nullptr;
     Drawable* doubleFlatSvg = nullptr;
+
 
     ComboBox keyMenu;
     DrawableButton holdNoteButton;
@@ -475,7 +489,7 @@ private:
     Label octaveLabel;
     TextButton notationButton;
     TextButton rightArrowButton;
-    TextButton chordPlacementButton;
+    CustomDrawableButton chordPlacementButton;
     TextButton chordFontBoldButton;
     TextButton darkModeButton;
 
