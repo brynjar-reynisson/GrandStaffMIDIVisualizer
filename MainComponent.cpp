@@ -143,9 +143,9 @@ void MainComponent::init(PluginModel* model)
     darkModeButton.setButtonText("D");
     darkModeButton.setTooltip("Dark mode");
 
-    onParametersChanged();
     updateColourScheme();
-
+    onParametersChanged();
+    
     addAndMakeVisible(holdNoteButton);
     addAndMakeVisible(keyMenu);
     addAndMakeVisible(leftArrowButton);
@@ -161,22 +161,22 @@ void MainComponent::updateChordPlacementButton()
 {
     if (pluginModel->chordPlacement == 0)
     {
-        chordPlacementButton.setButtonText("V");
+        chordPlacementButton.setImages(blankSvg.get());
         chordPlacementButton.setTooltip("Chord name in bottom");
     }
     else if (pluginModel->chordPlacement == 1)
     {
-        chordPlacementButton.setButtonText(">");
+        chordPlacementButton.setImages(arrowDownSvg);
         chordPlacementButton.setTooltip("Chord name to the right");
     }
     else if (pluginModel->chordPlacement == 2)
     {
-        chordPlacementButton.setButtonText("^");
+        chordPlacementButton.setImages(arrowRightSvg);
         chordPlacementButton.setTooltip("Only chord name");
     }
     else if (pluginModel->chordPlacement == 3)
     {
-        chordPlacementButton.setButtonText(" ");
+        chordPlacementButton.setImages(arrowUpSvg);
         chordPlacementButton.setTooltip("No chord name");
     }
 }
@@ -190,12 +190,14 @@ void MainComponent::updateColourScheme()
         staffSvg = dmStaffSvg.get();
         noteSvg = dmNoteSvg.get();
         incrementSvg = dmIncrementSvg.get();
+        arrowDownSvg = dmArrowDownSvg.get();
+        arrowRightSvg = dmArrowRightSvg.get();
+        arrowUpSvg = dmArrowUpSvg.get();
         sharpSvg = dmSharpSvg.get();        
         flatSvg = dmFlatSvg.get();
         naturalSvg = dmNaturalSvg.get();
         doubleSharpSvg = dmDoubleSharpSvg.get();
         doubleFlatSvg = dmDoubleFlatSvg.get();
-
         darkModeButton.setToggleState(true, false);
     }
     else
@@ -204,17 +206,20 @@ void MainComponent::updateColourScheme()
         staffSvg = lmStaffSvg.get();
         noteSvg = lmNoteSvg.get();
         incrementSvg = lmIncrementSvg.get();
+        arrowDownSvg = lmArrowDownSvg.get();
+        arrowRightSvg = lmArrowRightSvg.get();
+        arrowUpSvg = lmArrowUpSvg.get();
         sharpSvg = lmSharpSvg.get();
         flatSvg = lmFlatSvg.get();
         naturalSvg = lmNaturalSvg.get();
         doubleSharpSvg = lmDoubleSharpSvg.get();
         doubleFlatSvg = lmDoubleFlatSvg.get();
-
         darkModeButton.setToggleState(false, false);
     }
     keyMenu.setLookAndFeel(lookAndFeel);
     octaveLabel.setLookAndFeel(lookAndFeel);
     holdNoteButton.setImages(noteSvg);
+    updateChordPlacementButton();
 
     Button* buttons[] = { &holdNoteButton, &leftArrowButton, &rightArrowButton, &notationButton, &chordPlacementButton, &chordFontBoldButton, &darkModeButton };
     for (Button* button : buttons)
