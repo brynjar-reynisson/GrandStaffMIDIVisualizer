@@ -300,7 +300,7 @@ public:
     CustomDrawableButton(const String& buttonName,
         ButtonStyle buttonStyle) : DrawableButton(buttonName, buttonStyle)
     {
-    };
+    }
 
     /*
     * This method allows sizing and placing the images any way one wants to inside the button bounds
@@ -310,7 +310,7 @@ public:
         int width = getBounds().getWidth();
         int height = getBounds().getHeight();
         return Rectangle<float>(width * 0.33, height * 0.33, width * 0.33, height * 0.33);
-    };
+    }
 
 private:
 };
@@ -319,33 +319,27 @@ private:
 static float fontHeightMultiplier = 0.7;
 static LookAndFeel* defaultLookAndFeel = nullptr;
 
-class CustomFontLookAndFeel : public LookAndFeel_V4
+class CustomLookAndFeel : public LookAndFeel_V4
 {
 public:
-    CustomFontLookAndFeel()
+    CustomLookAndFeel()
     {
-        //defaultLookAndFeel = &(LookAndFeel::getDefaultLookAndFeel());
-        //LookAndFeel::setDefaultLookAndFeel(this);
     }
 
-    Font getTextButtonFont(TextButton& textButton, int buttonHeight)
-    {
-        return plainCustomFont.withHeight(buttonHeight * fontHeightMultiplier);
-    }
+    void setLightModeLookAndFeel();
+    void setDarkModeLookAndFeel();
 
-    Font getLabelFont(Label& l)
-    {
-        return plainCustomFont.withHeight(l.getBounds().getHeight() * fontHeightMultiplier);
-    }
+    Font getTextButtonFont(TextButton& textButton, int buttonHeight);
+    Font getLabelFont(Label& l);
+    Font getComboBoxFont(ComboBox& c);
+    Font getPopupMenuFont();
+    Typeface::Ptr getTypefaceForFont(const Font& f) override;
 
-    Font getComboBoxFont(ComboBox& c) 
+    void drawRotarySlider(Graphics& g, int x, int y, int width, int height, float sliderPos,
+        const float rotaryStartAngle, const float rotaryEndAngle, Slider& slider);
+    int getSliderPopupPlacement(Slider& slider)
     {
-        return plainCustomFont.withHeight(c.getBounds().getHeight() * fontHeightMultiplier);
-    }
-
-    Font getPopupMenuFont() 
-    {
-        return plainCustomFont;
+        return BubbleComponent::below;
     }
 
     static Font getCustomFont()
@@ -354,10 +348,14 @@ public:
         plainCustomFont.setTypefaceStyle("Plain");
         return plainCustomFont;
     }
-
-    Typeface::Ptr getTypefaceForFont(const Font& f) override
+};
+//==============================================================================
+class OctaveSlider : public Slider
+{
+    String getTextFromValue(double value)
     {
-        return customFontTypeface;
+        String plusModifier = value > 0 ? "+" : "";
+        return "Octave " + plusModifier + std::to_string((int)value);
     }
 };
 //==============================================================================
@@ -400,13 +398,12 @@ private:
         .build();
 };
 //==============================================================================
-class MainComponent final : public Component, public Button::Listener {
+class MainComponent final : public Component, public Button::Listener, public SliderListener<Slider> {
 public:
     MainComponent(PluginModel* model) :
         chordFadeOut(this, model),
         holdNoteButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground),
         chordPlacementButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
-        //notationButton("", DrawableButton::ButtonStyle::ImageOnButtonBackground)
     {
         chordFadeOut.init();
         init(model);
@@ -420,13 +417,12 @@ public:
         darkModeButton.setLookAndFeel(nullptr);
         chordPlacementButton.setLookAndFeel(nullptr);
         holdNoteButton.setLookAndFeel(nullptr);
-        leftArrowButton.setLookAndFeel(nullptr);
-        rightArrowButton.setLookAndFeel(nullptr);
-        octaveLabel.setLookAndFeel(nullptr);
+        octaveSlider.setLookAndFeel(nullptr);
     }
     void paint(Graphics& g) override;
     void resized() override;
     void buttonClicked(juce::Button* button) override;
+    void sliderValueChanged(Slider* slider) override;
     void updateChordPlacementButton();
     void updateColourScheme();
     void onParametersChanged();
@@ -435,7 +431,6 @@ public:
 private:
     void init(PluginModel* model);
     void keyMenuChanged();
-    //void noteYPlacement(StaffCalculator& staffCalculator, String& chordName, NoteDrawInfo& noteDrawInfo, int midiNote);
     void drawStaff(Graphics& g, StaffCalculator& staffCalculator);
     void drawKeySignature(Graphics& g, StaffCalculator& staffCalculator);
     void drawSharps(Graphics& g, StaffCalculator& staffCalculator, int numSharps);
@@ -484,14 +479,12 @@ private:
 
 
     ComboBox keyMenu;
-    DrawableButton holdNoteButton;
-    TextButton leftArrowButton;
-    Label octaveLabel;
     TextButton notationButton;
-    TextButton rightArrowButton;
     CustomDrawableButton chordPlacementButton;
     TextButton chordFontBoldButton;
     TextButton darkModeButton;
+    DrawableButton holdNoteButton;
+    OctaveSlider octaveSlider;
 
     PluginModel* pluginModel;
     Keys keys;
@@ -500,9 +493,9 @@ private:
     Chord chord;
 
     TooltipWindow tooltipWindow{ this }; // instance required for ToolTips to work
-    CustomFontLookAndFeel darkLookAndFeel;
-    CustomFontLookAndFeel lightLookAndFeel;
-    CustomFontLookAndFeel customFontLookAndFeel;
+    CustomLookAndFeel darkLookAndFeel;
+    CustomLookAndFeel lightLookAndFeel;
+    CustomLookAndFeel customFontLookAndFeel;
 
     FadeOut chordFadeOut;
 };

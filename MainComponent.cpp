@@ -34,7 +34,7 @@ void MainComponent::onParametersChanged()
 {
     keyMenu.setSelectedId(pluginModel->keyId + 1, false);
     holdNoteButton.setToggleState(pluginModel->holdNotes, false);
-    octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
+    octaveSlider.setValue(pluginModel->transposeOctaves);
     notationButton.setToggleState(pluginModel->shortNotation, false);
     updateChordPlacementButton();
     chordFontBoldButton.setToggleState(pluginModel->chordFontBold, false);
@@ -65,41 +65,8 @@ void MainComponent::init(PluginModel* model)
     pluginModel->paramChangedFromHost = [&] { onParametersChanged(); };
     chordFadeOut.onStopped = [&] { onChordFadeOutStopped(); };
 
-    lightLookAndFeel.setColour(TextButton::textColourOnId, Colours::black);
-    lightLookAndFeel.setColour(TextButton::textColourOffId, Colours::darkgrey);
-    lightLookAndFeel.setColour(TextButton::buttonOnColourId, Colours::lightgrey);
-    lightLookAndFeel.setColour(TextButton::buttonColourId, Colours::white);
-    lightLookAndFeel.setColour(Label::textColourId, Colours::black);
-    lightLookAndFeel.setColour(Label::backgroundColourId, Colour(230, 230, 230));
-    lightLookAndFeel.setColour(ComboBox::outlineColourId, Colours::black);
-    lightLookAndFeel.setColour(ComboBox::focusedOutlineColourId, Colours::black);
-    lightLookAndFeel.setColour(ComboBox::textColourId, Colours::black);
-    lightLookAndFeel.setColour(ComboBox::arrowColourId, Colours::darkgrey);
-    lightLookAndFeel.setColour(ComboBox::backgroundColourId, Colours::white);
-    lightLookAndFeel.setColour(ComboBox::buttonColourId, Colours::white);
-    lightLookAndFeel.setColour(PopupMenu::backgroundColourId, Colours::white);
-    lightLookAndFeel.setColour(PopupMenu::headerTextColourId, Colours::black);
-    lightLookAndFeel.setColour(PopupMenu::highlightedBackgroundColourId, Colours::lightgrey);
-    lightLookAndFeel.setColour(PopupMenu::highlightedTextColourId, Colours::black);
-    lightLookAndFeel.setColour(PopupMenu::textColourId, Colours::black);
-
-    darkLookAndFeel.setColour(TextButton::textColourOnId, darkModeForegroundColour);
-    darkLookAndFeel.setColour(TextButton::textColourOffId, darkModeForegroundColour);
-    darkLookAndFeel.setColour(TextButton::buttonColourId, darkModeBackgroundColour);
-    darkLookAndFeel.setColour(TextButton::buttonOnColourId, darkModeSelectedBackgroundColour);
-    darkLookAndFeel.setColour(Label::textColourId, darkModeForegroundColour);
-    darkLookAndFeel.setColour(Label::backgroundColourId, darkModeSelectedBackgroundColour);
-    darkLookAndFeel.setColour(ComboBox::outlineColourId, darkModeForegroundColour);
-    darkLookAndFeel.setColour(ComboBox::focusedOutlineColourId, Colours::white);
-    darkLookAndFeel.setColour(ComboBox::textColourId, darkModeForegroundColour);
-    darkLookAndFeel.setColour(ComboBox::arrowColourId, darkModeForegroundColour);
-    darkLookAndFeel.setColour(ComboBox::backgroundColourId, darkModeBackgroundColour);
-    darkLookAndFeel.setColour(ComboBox::buttonColourId, darkModeBackgroundColour);
-    darkLookAndFeel.setColour(PopupMenu::backgroundColourId, darkModeBackgroundColour);
-    darkLookAndFeel.setColour(PopupMenu::headerTextColourId, darkModeForegroundColour);
-    darkLookAndFeel.setColour(PopupMenu::highlightedBackgroundColourId, darkModeSelectedBackgroundColour);
-    darkLookAndFeel.setColour(PopupMenu::highlightedTextColourId, Colours::white);
-    darkLookAndFeel.setColour(PopupMenu::textColourId, darkModeForegroundColour);
+    lightLookAndFeel.setLightModeLookAndFeel();
+    darkLookAndFeel.setDarkModeLookAndFeel();
 
     holdNoteButton.addListener(this);
     holdNoteButton.setToggleable(true);
@@ -114,15 +81,6 @@ void MainComponent::init(PluginModel* model)
     keyMenu.setJustificationType(Justification::centred);    
     keyMenu.setSelectedItemIndex(1);
     keyMenu.onChange = [this] { keyMenuChanged(); };
-
-    leftArrowButton.addListener(this);
-    leftArrowButton.setButtonText("<");
-    leftArrowButton.setTooltip("Octave down");
-    octaveLabel.setJustificationType(juce::Justification::centred);
-
-    rightArrowButton.addListener(this);
-    rightArrowButton.setButtonText(">");
-    rightArrowButton.setTooltip("Octave up");
 
     notationButton.addListener(this);    
     //notationButton.setButtonText(L"∆"); //this doesn't work, we must use the escape sequence below
@@ -143,18 +101,23 @@ void MainComponent::init(PluginModel* model)
     darkModeButton.setButtonText("D");
     darkModeButton.setTooltip("Dark mode");
 
+    octaveSlider.setSliderStyle(Slider::SliderStyle::Rotary);
+    octaveSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, false, 0, 0);
+    octaveSlider.setRange(-3, 3, 1);
+    octaveSlider.setPopupDisplayEnabled(true, true, this);
+    octaveSlider.addListener(this);
+    octaveSlider.setValue(pluginModel->transposeOctaves);
+
     updateColourScheme();
     onParametersChanged();
     
     addAndMakeVisible(holdNoteButton);
     addAndMakeVisible(keyMenu);
-    addAndMakeVisible(leftArrowButton);
-    addAndMakeVisible(octaveLabel);
     addAndMakeVisible(notationButton);
-    addAndMakeVisible(rightArrowButton);
     addAndMakeVisible(chordPlacementButton);
     addAndMakeVisible(chordFontBoldButton);
     addAndMakeVisible(darkModeButton);
+    addAndMakeVisible(octaveSlider);
 }
 
 void MainComponent::updateChordPlacementButton()
@@ -183,7 +146,7 @@ void MainComponent::updateChordPlacementButton()
 
 void MainComponent::updateColourScheme()
 {
-    CustomFontLookAndFeel* lookAndFeel = nullptr;
+    CustomLookAndFeel* lookAndFeel = nullptr;
     if (pluginModel->darkMode)
     {
         lookAndFeel = &darkLookAndFeel;
@@ -217,11 +180,11 @@ void MainComponent::updateColourScheme()
         darkModeButton.setToggleState(false, false);
     }
     keyMenu.setLookAndFeel(lookAndFeel);
-    octaveLabel.setLookAndFeel(lookAndFeel);
     holdNoteButton.setImages(noteSvg);
     updateChordPlacementButton();
+    octaveSlider.setLookAndFeel(lookAndFeel);
 
-    Button* buttons[] = { &holdNoteButton, &leftArrowButton, &rightArrowButton, &notationButton, &chordPlacementButton, &chordFontBoldButton, &darkModeButton };
+    Button* buttons[] = { &holdNoteButton, &notationButton, &chordPlacementButton, &chordFontBoldButton, &darkModeButton };
     for (Button* button : buttons)
     {
         button->setLookAndFeel(lookAndFeel);
@@ -238,14 +201,28 @@ void MainComponent::resized()
     int buttonSpace = buttonSize * 0.1;
     keyMenu.setBounds(buttonSpace * 2, buttonSpace * 2, buttonSize * 4, buttonSize);
 
-    notationButton.setBounds(buttonSize * 4 + buttonSpace * 3, buttonSpace * 2, buttonSize * 1.1, buttonSize);
-    chordPlacementButton.setBounds(buttonSize * 5 + buttonSpace * 5, buttonSpace * 2, buttonSize * 1.1, buttonSize);
-    chordFontBoldButton.setBounds(buttonSize * 6 + buttonSpace * 7, buttonSpace * 2, buttonSize * 1.1, buttonSize);
-    darkModeButton.setBounds(bounds.getWidth() - buttonSize * 6.6 - buttonSpace * 4, buttonSpace * 2, buttonSize * 1.1, buttonSize);
-    holdNoteButton.setBounds(bounds.getWidth() - buttonSize * 5.5 - buttonSpace * 3, buttonSpace * 2, buttonSize * 1.1, buttonSize);
-    leftArrowButton.setBounds(bounds.getWidth() - buttonSize * 4.4 - buttonSpace * 2, buttonSpace * 2, buttonSize * 1.1, buttonSize);
-    octaveLabel.setBounds(bounds.getWidth() - buttonSize * 3.3 - buttonSpace * 2, buttonSpace * 2, buttonSize * 2.2, buttonSize);
-    rightArrowButton.setBounds(bounds.getWidth() - buttonSize * 1.1 - buttonSpace * 2, buttonSpace * 2, buttonSize * 1.1, buttonSize);
+    int buttonSizeMultiplier = 4;
+    int buttonSpaceMultiplier = 3;
+    std::vector<Component*> components = {
+        &notationButton, &chordPlacementButton, &chordFontBoldButton, &darkModeButton, &holdNoteButton, &octaveSlider
+    };
+    for (int i = 0; i < 6; i++)
+    {
+        components[i]->setBounds(buttonSize * buttonSizeMultiplier + buttonSpace * buttonSpaceMultiplier, buttonSpace * 2, buttonSize * 1.1, buttonSize);
+        buttonSizeMultiplier++;
+        buttonSpaceMultiplier += 2;
+    }
+}
+
+void MainComponent::sliderValueChanged(Slider* slider)
+{
+    int newValue = slider->getValue();
+    if (newValue != pluginModel->transposeOctaves)
+    {
+        pluginModel->transposeOctaves = newValue;
+        NullCheckedInvocation::invoke(pluginModel->paramChangedFromUI);
+        repaint();
+    }
 }
 
 static String lastChordName;
@@ -263,22 +240,6 @@ void MainComponent::buttonClicked(juce::Button* button)
             pluginModel->midiNotes[i] = 0;
         pluginModel->holdNotes = holdNoteButton.getToggleState();
         onMidiChanged();
-    }
-    else if (button == &leftArrowButton)
-    {
-        if (pluginModel->transposeOctaves > -3)
-        {
-            pluginModel->transposeOctaves--;
-            octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
-        }
-    }
-    else if (button == &rightArrowButton)
-    {
-        if (pluginModel->transposeOctaves < 3)
-        {
-            pluginModel->transposeOctaves++;
-            octaveLabel.setText(std::to_string(pluginModel->transposeOctaves), NotificationType::dontSendNotification);
-        }
     }
     else if (button == &notationButton)
     {
@@ -639,9 +600,3 @@ void MainComponent::keyMenuChanged()
     NullCheckedInvocation::invoke(pluginModel->paramChangedFromUI);
     repaint();
 }
-/*
-Font TextButtonCustomFontLookAndFeel::getTextButtonFont(TextButton& textButton, int buttonHeight)
-{
-    return plainCustomFont;
-}
-*/
