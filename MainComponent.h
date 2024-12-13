@@ -27,6 +27,7 @@
 
 const static int CMD_MSG_MIDI_CHANGES = 10001;
 const static int CMD_MSG_VST_PARAM_CHANGES = 10002;
+const static int CMD_MSG_RESIZE = 10002;
 
 static Colour darkModeForegroundColour(236, 236, 236);
 static Colour darkModeBackgroundColour(36, 33, 33);
@@ -476,7 +477,6 @@ private:
     Drawable* naturalSvg = nullptr;
     Drawable* doubleSharpSvg = nullptr;
     Drawable* doubleFlatSvg = nullptr;
-
 
     ComboBox keyMenu;
     TextButton notationButton;

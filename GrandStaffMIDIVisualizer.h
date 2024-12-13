@@ -146,13 +146,13 @@ private:
             mainComponent(&ownerIn.pluginModel)
         {
             setResizable (true, true);
+            addAndMakeVisible(mainComponent);
             if (owner.pluginModel.uiWidth > 0 && owner.pluginModel.uiHeight > 0)
                 setSize(owner.pluginModel.uiWidth, owner.pluginModel.uiHeight);
             else
                 setSize(500, 500);
 
-            setConstrainer(&constrainer);
-            addAndMakeVisible(mainComponent);
+            setConstrainer(&constrainer);            
         }
 
         ~Editor()
@@ -190,6 +190,11 @@ private:
 
         void handleCommandMessage(int commandId)
         {
+            if (commandId == CMD_MSG_RESIZE)
+            {
+                setSize(owner.pluginModel.uiWidth, owner.pluginModel.uiHeight);
+                return;
+            }
             if (commandId == CMD_MSG_VST_PARAM_CHANGES)
                 mainComponent.onParametersChanged();
             else if (commandId == CMD_MSG_MIDI_CHANGES)

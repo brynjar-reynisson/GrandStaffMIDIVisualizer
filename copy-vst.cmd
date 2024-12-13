@@ -1,0 +1,1 @@
+copy /Y "C:\Users\Lenovo\JUCE\projects\GrandStaffMIDIVisualizer\GrandStaffMIDIVisualizer\Builds\VisualStudio2022\x64\Release\VST3\GrandStaffMIDIVisualizer.vst3\Contents\x86_64-win\GrandStaffMIDIVisualizer.vst3" "C:\Program Files\Common Files\VST3\GrandStaffMIDIVisualizer"

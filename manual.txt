@@ -1,0 +1,7 @@
+INSTALLATION INSTRUCTIONS
+If not already installed, run:
+vcredist2015_2017_2019_2022_x64.exe
+
+Copy GrandStaffMIDIVisualizer.vst3 to C:\Program Files\Common Files\VST3 or any other VST3 folder recognized by your DAW
+
+GrandStaffMIDIVisualizer.exe is a standalone version that can be run from any folder

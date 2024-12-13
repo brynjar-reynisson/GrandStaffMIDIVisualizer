@@ -39,6 +39,11 @@ void MainComponent::onParametersChanged()
     updateChordPlacementButton();
     chordFontBoldButton.setToggleState(pluginModel->chordFontBold, false);
     updateColourScheme();
+    if (getParentComponent() != nullptr && (pluginModel->uiWidth != getWidth() || pluginModel->uiHeight != getHeight()))
+    {
+        getParentComponent()->postCommandMessage(CMD_MSG_RESIZE);
+        return;
+    }
     pluginModel->hasParamChanges = false;
     repaint();
 }
