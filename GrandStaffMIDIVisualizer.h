@@ -55,6 +55,7 @@
 #pragma once
 
 #include <iterator>
+#include <chrono>
 #include "MainComponent.h"
 #include "VSTParameters.h"
 
@@ -68,8 +69,7 @@ public:
         pluginModel { PluginModel() },
         vstParameters(*this, pluginModel)
     {
-        for (int i = 0; i < 127; i++)
-            pluginModel.midiNotes[i] = 0;
+        pluginModel.resetMidiNotes();
         editor = nullptr;        
     }
 
@@ -80,6 +80,22 @@ public:
         audio.clear();
         ScopedLock lock(pluginModel.criticalSection);
         bool hasMidiChanges = false;
+
+        Optional<AudioPlayHead::PositionInfo> result = getPlayHead()->getPosition();
+        if (result.hasValue())
+        {
+            if (result->getIsPlaying() || result->getIsRecording())
+            {
+                unsigned __int64 now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                if (pluginModel.holdNotes && now > lastPlayTime + 1000)
+                {
+                    pluginModel.resetMidiNotes();
+                    hasMidiChanges = true;
+                }
+                lastPlayTime = now;
+            }
+        }
+
         for (const MidiMessageMetadata metadata : midi)
         {
             int noteNumber = metadata.getMessage().getNoteNumber();
@@ -122,8 +138,9 @@ public:
     const String getProgramName (int) override                                { return "None"; }
     void changeProgramName (int, const String&) override                      {}
 
-    void prepareToPlay (double, int) override                                 {}
     void releaseResources() override                                          {}
+
+    void prepareToPlay(double, int) override {}
 
     void getStateInformation (MemoryBlock& destData) override
     {
@@ -235,10 +252,9 @@ private:
              : BusesProperties();
     }
 
-    //ValueTree state { "state" };
-
     PluginModel pluginModel;
     VSTParameters vstParameters;
+    unsigned __int64 lastPlayTime = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GrandStaffMIDIVisualizerProcessor)
 };

@@ -230,6 +230,11 @@ public:
     int uiWidth = -1;
     int uiHeight = -1;
 
+    void resetMidiNotes()
+    {
+        for (int i = 0; i < 127; i++)
+            midiNotes[i] = 0;
+    }
     std::function<void()> paramChangedFromUI;
     std::function<void()> paramChangedFromHost;
 
@@ -338,6 +343,8 @@ public:
 
     void drawRotarySlider(Graphics& g, int x, int y, int width, int height, float sliderPos,
         const float rotaryStartAngle, const float rotaryEndAngle, Slider& slider);
+    void drawComboBox(Graphics& g, int width, int height, bool,
+        int, int, int, int, ComboBox& box);
     int getSliderPopupPlacement(Slider& slider)
     {
         return BubbleComponent::below;
@@ -349,6 +356,11 @@ public:
         plainCustomFont.setTypefaceStyle("Plain");
         return plainCustomFont;
     }
+
+private:
+    const std::unique_ptr<Drawable> lmKeySelectorArrowDownSvg = Drawable::createFromImageData(BinaryData::KeySelectorArrowDown_svg, BinaryData::KeySelectorArrowDown_svgSize);
+    const std::unique_ptr<Drawable> dmKeySelectorArrowDownSvg = Drawable::createFromImageData(BinaryData::KeySelectorArrowDownDarkMode_svg, BinaryData::KeySelectorArrowDownDarkMode_svgSize);
+    bool darkMode = false;
 };
 //==============================================================================
 class OctaveSlider : public Slider
@@ -506,4 +518,3 @@ static int getButtonHeight(Rectangle<int> bounds)
     int calculatedButtonHeight = bounds.getHeight() * 0.05;
     return std::max((int)calculatedButtonHeight, minButtonHeight);
 }
-

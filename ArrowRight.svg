@@ -4,10 +4,10 @@
 <svg
    version="1.1"
    id="svg2"
-   width="90.666664"
+   width="146.66667"
    height="126.66667"
-   viewBox="0 0 90.666664 126.66667"
-   sodipodi:docname="Chord_display_selector_Right.eps"
+   viewBox="0 0 146.66667 126.66667"
+   sodipodi:docname="Right.eps"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -32,9 +32,13 @@
        id="g10"
        transform="scale(0.1)">
       <path
-         d="M 92.1328,90.5703 588.449,474.301 92.1641,858.043"
+         d="M 512.172,858.109 1008.5,474.379 512.203,90.6445"
          style="fill:none;stroke:#0b0c0b;stroke-width:113.386;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.6131;stroke-dasharray:none;stroke-opacity:1"
          id="path12" />
+      <path
+         d="M 1008.5,474.379 H 92.0781"
+         style="fill:none;stroke:#0b0c0b;stroke-width:113.386;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.6131;stroke-dasharray:none;stroke-opacity:1"
+         id="path14" />
     </g>
   </g>
 </svg>

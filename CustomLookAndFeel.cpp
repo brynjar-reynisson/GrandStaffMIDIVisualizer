@@ -25,6 +25,7 @@
 
 void CustomLookAndFeel::setLightModeLookAndFeel()
 {
+    darkMode = false;
     setColour(TextButton::textColourOnId, Colours::black);
     setColour(TextButton::textColourOffId, Colours::darkgrey);
     setColour(TextButton::buttonOnColourId, Colours::lightgrey);
@@ -43,16 +44,17 @@ void CustomLookAndFeel::setLightModeLookAndFeel()
     setColour(PopupMenu::highlightedTextColourId, Colours::black);
     setColour(PopupMenu::textColourId, Colours::black);
 
-    Colour grey = Colours::grey;
-    setColour(Slider::thumbColourId, grey);
-    setColour(Slider::trackColourId, grey);
-    setColour(Slider::rotarySliderFillColourId, grey);
-    setColour(Slider::rotarySliderOutlineColourId, grey);
+    Colour lightModeSliderForeground = Colour(50, 50, 50);
+    setColour(Slider::thumbColourId, lightModeSliderForeground);
+    setColour(Slider::trackColourId, lightModeSliderForeground);
+    setColour(Slider::rotarySliderFillColourId, lightModeSliderForeground);
+    setColour(Slider::rotarySliderOutlineColourId, lightModeSliderForeground);
     setColour(Slider::backgroundColourId, Colours::white);
 }
 
 void CustomLookAndFeel::setDarkModeLookAndFeel()
 {
+    darkMode = true;
     setColour(TextButton::textColourOnId, darkModeForegroundColour);
     setColour(TextButton::textColourOffId, darkModeForegroundColour);
     setColour(TextButton::buttonColourId, darkModeBackgroundColour);
@@ -71,11 +73,11 @@ void CustomLookAndFeel::setDarkModeLookAndFeel()
     setColour(PopupMenu::highlightedTextColourId, Colours::white);
     setColour(PopupMenu::textColourId, darkModeForegroundColour);
 
-    Colour grey = Colours::grey;
-    setColour(Slider::thumbColourId, grey);
-    setColour(Slider::trackColourId, grey);
-    setColour(Slider::rotarySliderFillColourId, grey);
-    setColour(Slider::rotarySliderOutlineColourId, grey);
+    Colour darkModeSliderForeground = Colour(244, 244, 244);
+    setColour(Slider::thumbColourId, darkModeSliderForeground);
+    setColour(Slider::trackColourId, darkModeSliderForeground);
+    setColour(Slider::rotarySliderFillColourId, darkModeSliderForeground);
+    setColour(Slider::rotarySliderOutlineColourId, darkModeSliderForeground);
     setColour(Slider::backgroundColourId, darkModeBackgroundColour);
 }
 
@@ -115,7 +117,7 @@ void CustomLookAndFeel::drawRotarySlider(Graphics& g, int x, int y, int width, i
 
     auto radius = jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
     auto toAngle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-    auto lineW = radius * 0.15f;
+    auto lineW = radius * 0.1f;
     auto arcRadius = radius - lineW * 0.5f;
 
     Path backgroundArc;
@@ -159,4 +161,26 @@ void CustomLookAndFeel::drawRotarySlider(Graphics& g, int x, int y, int width, i
 
     g.setColour(slider.findColour(Slider::thumbColourId));
     g.drawLine(thumbPointInner.x, thumbPointInner.y, thumbPointOuter.x, thumbPointOuter.y, lineW);
+}
+
+void CustomLookAndFeel::drawComboBox(Graphics& g, int width, int height, bool,
+    int, int, int, int, ComboBox& box)
+{
+    auto cornerSize = box.findParentComponentOfClass<ChoicePropertyComponent>() != nullptr ? 0.0f : 3.0f;
+    Rectangle<int> boxBounds(0, 0, width, height);
+
+    g.setColour(box.findColour(ComboBox::backgroundColourId));
+    g.fillRoundedRectangle(boxBounds.toFloat(), cornerSize);
+
+    g.setColour(box.findColour(ComboBox::outlineColourId));
+    g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
+
+    Rectangle<int> arrowZone(width - height * 1.25, 0, height, height);
+    Path path;
+    path.startNewSubPath((float)arrowZone.getX() + height * 0.2, (float)arrowZone.getCentreY() - height * 0.05);
+    path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + height * 0.15);
+    path.lineTo((float)arrowZone.getRight() - height * 0.2, (float)arrowZone.getCentreY() - height * 0.05);
+
+    g.setColour(box.findColour(ComboBox::arrowColourId).withAlpha((box.isEnabled() ? 0.9f : 0.2f)));
+    g.strokePath(path, PathStrokeType(height * 0.1));
 }

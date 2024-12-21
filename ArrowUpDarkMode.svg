@@ -5,9 +5,9 @@
    version="1.1"
    id="svg2"
    width="125.33333"
-   height="89.333336"
-   viewBox="0 0 125.33333 89.333336"
-   sodipodi:docname="Dark_Mode_Chord_display_selector_Up.eps"
+   height="145.33333"
+   viewBox="0 0 125.33333 145.33333"
+   sodipodi:docname="up.eps"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -27,14 +27,18 @@
      id="g8"
      inkscape:groupmode="layer"
      inkscape:label="ink_ext_XXXXXX"
-     transform="matrix(1.3333333,0,0,-1.3333333,0,89.333333)">
+     transform="matrix(1.3333333,0,0,-1.3333333,0,145.33333)">
     <g
        id="g10"
        transform="scale(0.1)">
       <path
-         d="M 854.039,86.1445 470.309,582.469 86.5781,86.1719"
+         d="M 86.5547,506.262 470.289,1002.59 854.02,506.293"
          style="fill:none;stroke:#f4f4f4;stroke-width:113.386;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.6131;stroke-dasharray:none;stroke-opacity:1"
          id="path12" />
+      <path
+         d="M 470.285,1002.59 V 86.168"
+         style="fill:none;stroke:#f4f4f4;stroke-width:113.386;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.6131;stroke-dasharray:none;stroke-opacity:1"
+         id="path14" />
     </g>
   </g>
 </svg>

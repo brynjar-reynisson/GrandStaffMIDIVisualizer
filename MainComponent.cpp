@@ -475,7 +475,7 @@ void MainComponent::paint(Graphics& g)
     {
         if (firstNote)
         {
-            if (pluginModel->chordPlacement > 0)
+            if (pluginModel->chordPlacement == 1 || pluginModel->chordPlacement == 2)
             {
                 float textWidth = pluginModel->chordPlacement == 2 ?
                     localBounds.getWidth() - baseNoteX - staffCalculator.noteWidth * 3 :
@@ -483,8 +483,8 @@ void MainComponent::paint(Graphics& g)
                 float textHeight = pluginModel->chordPlacement == 2 ?
                     textWidth / 7.5f :
                     localBounds.getHeight() * 0.1;
-                float chordX;
-                float chordY;
+                float chordX = 0;
+                float chordY = 0;
                 if (pluginModel->chordPlacement == 2)
                 {
                     chordX = staffCalculator.staffHeight * 1.66;

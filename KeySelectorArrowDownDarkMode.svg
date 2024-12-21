@@ -4,10 +4,10 @@
 <svg
    version="1.1"
    id="svg2"
-   width="146.66667"
-   height="126.66667"
-   viewBox="0 0 146.66667 126.66667"
-   sodipodi:docname="Right.eps"
+   width="125.33333"
+   height="89.333336"
+   viewBox="0 0 125.33333 89.333336"
+   sodipodi:docname="Dark_Mode_ Chord_display_selector_Down.eps"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -27,18 +27,14 @@
      id="g8"
      inkscape:groupmode="layer"
      inkscape:label="ink_ext_XXXXXX"
-     transform="matrix(1.3333333,0,0,-1.3333333,0,126.66667)">
+     transform="matrix(1.3333333,0,0,-1.3333333,0,89.333333)">
     <g
        id="g10"
        transform="scale(0.1)">
       <path
-         d="M 512.172,858.117 1008.5,474.387 512.199,90.6563"
+         d="M 86.5781,582.473 470.309,86.1445 854.039,582.445"
          style="fill:none;stroke:#f4f4f4;stroke-width:113.386;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.6131;stroke-dasharray:none;stroke-opacity:1"
          id="path12" />
-      <path
-         d="M 1008.5,474.391 H 92.0742"
-         style="fill:none;stroke:#f4f4f4;stroke-width:113.386;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:2.6131;stroke-dasharray:none;stroke-opacity:1"
-         id="path14" />
     </g>
   </g>
 </svg>
