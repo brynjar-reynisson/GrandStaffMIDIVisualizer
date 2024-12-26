@@ -1,6 +1,6 @@
 # GrandStaffMIDIVisualizer
 
-![2024-11-24-Readme-Image-Small](https://github.com/user-attachments/assets/18f34722-4248-4099-91fc-69e6a54ab7ec)
+![GrandStaffGitHubImage](https://github.com/user-attachments/assets/9dea3afa-d680-46c2-a455-f2a682d8d281)
 
 This plugin shows on the Grand Staff what MIDI notes are being played at each time. It will also display chord names if a matching chord type is found. In order to build it, one must install the JUCE framework: https://juce.com/download/
 
