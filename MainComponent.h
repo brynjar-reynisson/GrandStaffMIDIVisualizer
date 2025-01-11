@@ -157,8 +157,8 @@ struct Key
     bool hasNote(String& noteName);
     String selectChordBaseNoteName(int midiNote, ChordType chordType);
 
-    inline static const String SHARP = "Sharp";
-    inline static const String FLAT = "Flat";
+    inline static const String SHARPS = "Sharps";
+    inline static const String FLATS = "Flats";
 };
 //==============================================================================
 class Keys

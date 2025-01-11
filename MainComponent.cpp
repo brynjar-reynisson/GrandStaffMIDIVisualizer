@@ -415,9 +415,9 @@ void MainComponent::paint(Graphics& g)
     for (int midiNote : midiNotes)
     {
         noteDrawInfos[midiNote] = NoteDrawInfo();
-        if (keyMenu.getSelectedId() < 3)
+        if (keyMenu.getSelectedId() > 14)
         {
-            bool sharp = keyMenu.getText() == Key::SHARP ? true : false;
+            bool sharp = keyMenu.getText() == Key::SHARPS ? true : false;
             staffCalculator.noteYPlacement(midiNote, noteDrawInfos[midiNote], sharp, true, 12 * pluginModel->transposeOctaves);
         }
         else
