@@ -532,7 +532,7 @@ void MainComponent::paint(Graphics& g)
             doubleFlatSvg->drawWithin(g, Rectangle<float>(accentX, noteDrawInfos[midiNote].y - staffCalculator.noteHeight * 1.25, staffCalculator.noteWidth, staffCalculator.noteHeight * 2.5f), juce::RectanglePlacement::Flags::xLeft, 1.0);
         }
     }
-    if (chordFadeOut.isRunning())
+    if (chordFadeOut.isRunning() && pluginModel->chordPlacement != 0)
     {
         drawText(g, chordName, lastChordX, lastChordY, lastTextWidth, lastTextHeight);
     }

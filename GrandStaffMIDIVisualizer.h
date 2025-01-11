@@ -245,11 +245,18 @@ private:
 
     static BusesProperties getBusesLayout()
     {
+        return BusesProperties()
+            .withInput("Input", juce::AudioChannelSet::stereo(), true)
+            .withOutput("Output", juce::AudioChannelSet::stereo(), true)
+            ;
+
+        /*
         // Live and Cakewalk don't like to load midi-only plugins, so we add an audio output there.
         const PluginHostType host;
         return host.isAbletonLive() || host.isSonar()
              ? BusesProperties().withOutput ("out", AudioChannelSet::stereo())
              : BusesProperties();
+             */
     }
 
     PluginModel pluginModel;
