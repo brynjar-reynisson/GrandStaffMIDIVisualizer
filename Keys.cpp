@@ -33,7 +33,7 @@ bool Key::hasNote(String& noteName)
 	return false;
 }
 
-String Key::selectChordBaseNoteName(int midiNote, ChordType chordType)
+const String Key::selectChordBaseNoteName(int midiNote, ChordType chordType)
 {
 	String noteNameSharp = MidiMessage::getMidiNoteName(midiNote, true, false, 4);
 	String noteNameFlat = MidiMessage::getMidiNoteName(midiNote, false, false, 4);
@@ -65,26 +65,70 @@ String Key::selectChordBaseNoteName(int midiNote, ChordType chordType)
 
 Keys::Keys()
 {
-	addKey("C", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
-	addKey("C#", std::list<String>({ "C#","D#","E#","F#","G#","A#","B#" }), 7, 0);
-	addKey("Db", std::list<String>({ "Db","Eb","F", "Gb","Ab","Bb","C" }), 0, 5);
-	addKey("D", std::list<String>({ "D","E","F#","G","A","B","C#"}), 2, 0);
 	//D# not supported, has two double sharps
-	addKey("Eb", std::list<String>({ "Eb","F", "G","Ab","Bb","C","D"}), 0, 3);
-	addKey("E", std::list<String>({ "E","F#","G#","A","B","C#","D#"}), 4, 0);
-	addKey("F", std::list<String>({ "F","G","A","Bb","C","D","E" }), 0, 1);
-	addKey("F#", std::list<String>({ "F#","G#","A#","B","C#","D#","E#" }), 6, 0);
-	addKey("Gb", std::list<String>({ "Gb","Ab","Bb","Cb","Db","Eb","F" }), 0, 6);
-	addKey("G", std::list<String>({ "G","A","B","C","D","E","F#" }), 1, 0);
 	//G# not supported, has a double sharp
-	addKey("Ab", std::list<String>({ "Ab","Bb","C","Db","Eb","F","G"}), 0, 4);
-	addKey("A", std::list<String>({ "A","B","C#","D","E","F#","G#"}), 3, 0);
 	//A# not supported, 3 double sharps
-	addKey("Bb", std::list<String>({ "Bb","C","D","Eb","F","G","A"}), 0, 2);
-	addKey("B", std::list<String>({ "B","C#","D#","E","F#","G#","A#"}), 5, 0);		
 
-	addKey("Sharps", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
-	addKey("Flats", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
+	//addKey("C", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
+	//addKey("C#", std::list<String>({ "C#","D#","E#","F#","G#","A#","B#" }), 7, 0);
+	//addKey("Db", std::list<String>({ "Db","Eb","F", "Gb","Ab","Bb","C" }), 0, 5);
+	//addKey("D", std::list<String>({ "D","E","F#","G","A","B","C#" }), 2, 0);
+	//addKey("Eb", std::list<String>({ "Eb","F", "G","Ab","Bb","C","D" }), 0, 3);
+	//addKey("E", std::list<String>({ "E","F#","G#","A","B","C#","D#" }), 4, 0);
+	//addKey("F", std::list<String>({ "F","G","A","Bb","C","D","E" }), 0, 1);
+	//addKey("F#", std::list<String>({ "F#","G#","A#","B","C#","D#","E#" }), 6, 0);
+	//addKey("Gb", std::list<String>({ "Gb","Ab","Bb","Cb","Db","Eb","F" }), 0, 6);
+	//addKey("G", std::list<String>({ "G","A","B","C","D","E","F#" }), 1, 0);
+	//addKey("Ab", std::list<String>({ "Ab","Bb","C","Db","Eb","F","G" }), 0, 4);
+	//addKey("A", std::list<String>({ "A","B","C#","D","E","F#","G#" }), 3, 0);
+	//addKey("Bb", std::list<String>({ "Bb","C","D","Eb","F","G","A" }), 0, 2);
+	//addKey("B", std::list<String>({ "B","C#","D#","E","F#","G#","A#" }), 5, 0);
+	//addKey("Sharps", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
+	//addKey("Flats", std::list<String>({ "C","D","E","F","G","A","B" }), 0, 0);
+
+	addKey("C", 0, 0);
+	addKey("C#", 7, 0);
+	addKey("Db", 0, 5);
+	addKey("D", 2, 0);
+	addKey("Eb", 0, 3);
+	addKey("E", 4, 0);
+	addKey("F", 0, 1);
+	addKey("F#", 6, 0);
+	addKey("Gb", 0, 6);
+	addKey("G", 1, 0);
+	addKey("Ab", 0, 4);
+	addKey("A", 3, 0);
+	addKey("Bb", 0, 2);
+	addKey("B", 5, 0);
+	addKey("Sharps", 0, 0);
+	addKey("Flats", 0, 0);
+
+	keys["C"].notes = std::list<String>({ "C","D","E","F","G","A","B" });
+	keys["C#"].notes = std::list<String>({ "C#","D#","E#","F#","G#","A#","B#" });
+	keys["Db"].notes = std::list<String>({ "Db","Eb","F", "Gb","Ab","Bb","C" });
+	keys["D"].notes = std::list<String>({ "D","E","F#","G","A","B","C#"});
+	keys["Eb"].notes = std::list<String>({ "Eb","F", "G","Ab","Bb","C","D"});
+	keys["E"].notes = std::list<String>({ "E","F#","G#","A","B","C#","D#"});
+	keys["F"].notes = std::list<String>({ "F","G","A","Bb","C","D","E" });
+	keys["F#"].notes = std::list<String>({ "F#","G#","A#","B","C#","D#","E#" });
+	keys["Gb"].notes = std::list<String>({ "Gb","Ab","Bb","Cb","Db","Eb","F" });
+	keys["G"].notes = std::list<String>({ "G","A","B","C","D","E","F#" });
+	keys["Ab"].notes = std::list<String>({ "Ab","Bb","C","Db","Eb","F","G"});
+	keys["A"].notes = std::list<String>({ "A","B","C#","D","E","F#","G#"});
+	keys["Bb"].notes = std::list<String>({ "Bb","C","D","Eb","F","G","A"});
+	keys["B"].notes = std::list<String>({ "B","C#","D#","E","F#","G#","A#"});
+	keys["Sharps"].notes = std::list<String>({ "C","D","E","F","G","A","B" });
+	keys["Flats"].notes = std::list<String>({ "C","D","E","F","G","A","B" });
+}
+
+void Keys::addKey(String name, int numSharps, int numFlats)
+{
+        Key key;
+        key.name = name;
+        key.numSharps = numSharps;
+        key.numFlats = numFlats;
+        keys[name] = key;
+        keyNames.push_back(name);	
 }
 
 void Keys::addKey(String name, std::list<String>& notes, int numSharps, int numFlats)
@@ -113,9 +157,9 @@ std::vector<String> Keys::getKeyNames()
 	return keyNames;
 }
 
-Key Keys::getKey(String name)
+Key* Keys::getKey(String name)
 {
-	return keys[name];
+	return &(keys[name]);
 }
 
 String Keys::selectChordName(String keyName, String sharpChordName, String flatChordName)
@@ -124,7 +168,7 @@ String Keys::selectChordName(String keyName, String sharpChordName, String flatC
 	return flatChordName;
 }
 
-static String getNoteName(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo)
+static String getNoteName(int midiNote, Key* key, Chord& chord, NoteDrawInfo& noteDrawInfo)
 {
 	if (chord.pattern.chordType == Dim)
 	{
@@ -137,24 +181,24 @@ static String getNoteName(int midiNote, Key& key, Chord& chord, NoteDrawInfo& no
 			return MidiMessage::getMidiNoteName(midiNote, false, false, 4);
 	}
 
-	String noteName = MidiMessage::getMidiNoteName(midiNote, key.numSharps > 0, false, 4);
-	if ((key.numSharps > 0 && noteName == "F") || (key.numSharps > 1 && noteName == "C"))
+	String noteName = MidiMessage::getMidiNoteName(midiNote, key->numSharps > 0, false, 4);
+	if ((key->numSharps > 0 && noteName == "F") || (key->numSharps > 1 && noteName == "C"))
 	{
 		noteDrawInfo.anchorNote = midiNote - 1;
 		if (noteName == "F")
 		{
 			noteName = "E#";
-			if (key.numSharps < 6)  //F# has 6, including E#
+			if (key->numSharps < 6)  //F# has 6, including E#
 				noteDrawInfo.sharp = true;
 		}
 		else if (noteName == "C")
 		{
 			noteName = "B#";
-			if (key.numSharps < 7) //C# has 7, including B#
+			if (key->numSharps < 7) //C# has 7, including B#
 				noteDrawInfo.sharp = true;
 		}
 	}
-	else if ((key.numFlats > 0 && noteName == "B") || (key.numFlats > 1 && noteName == "E"))
+	else if ((key->numFlats > 0 && noteName == "B") || (key->numFlats > 1 && noteName == "E"))
 	{
 		//Bb is the first flat, and Eb the second one. We should not see E or B natural outside of these cases, thus this flattening
 		noteDrawInfo.anchorNote = midiNote + 1;
@@ -167,13 +211,13 @@ static String getNoteName(int midiNote, Key& key, Chord& chord, NoteDrawInfo& no
 	return noteName;
 }
 
-void Keys::applyDimAnchorNoteAndAccents(int midiNote, String& noteName, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo)
+void Keys::applyDimAnchorNoteAndAccents(int midiNote, String& noteName, Key* key, Chord& chord, NoteDrawInfo& noteDrawInfo)
 {
 	//special handling here - all accented notes except the root note will be flat
 	if (noteName == chord.rootNote && noteName.length() == 2)
 	{
 		noteDrawInfo.anchorNote = midiNote - 1;
-		if (!key.hasNote(noteName))
+		if (!key->hasNote(noteName))
 			noteDrawInfo.sharp = true;
 	}
 	else
@@ -190,13 +234,13 @@ void Keys::applyDimAnchorNoteAndAccents(int midiNote, String& noteName, Key& key
 					noteName = "F#";
 				else if (chord.rootNote == "A#")
 					noteName = "C#";
-				if (!key.hasNote(noteName))
+				if (!key->hasNote(noteName))
 					noteDrawInfo.sharp = true;
 			}
 			else
 			{
 				noteDrawInfo.anchorNote = midiNote + 1;
-				if (!key.hasNote(noteName))
+				if (!key->hasNote(noteName))
 					noteDrawInfo.flat = true;
 				else
 				{
@@ -222,7 +266,7 @@ void Keys::applyDimAnchorNoteAndAccents(int midiNote, String& noteName, Key& key
 	}
 }
 
-void Keys::applyAnchorNoteAndAccents(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo)
+void Keys::applyAnchorNoteAndAccents(int midiNote, Key* key, Chord& chord, NoteDrawInfo& noteDrawInfo)
 {
 	String noteName = getNoteName(midiNote, key, chord, noteDrawInfo);
 	if ((noteName == "G" && chord.rootNote == "G#") || (noteName == "D" && chord.rootNote == "D#") || (noteName == "A" && chord.rootNote == "A#"))
@@ -251,7 +295,7 @@ void Keys::applyAnchorNoteAndAccents(int midiNote, Key& key, Chord& chord, NoteD
 		{
 			noteName = MidiMessage::getMidiNoteName(midiNote, false, false, 4);
 			noteDrawInfo.anchorNote = midiNote + 1;
-			if (!key.hasNote(noteName))
+			if (!key->hasNote(noteName))
 			{
 				noteDrawInfo.flat = true;
 			}			
@@ -259,7 +303,7 @@ void Keys::applyAnchorNoteAndAccents(int midiNote, Key& key, Chord& chord, NoteD
 		else
 		{
 			noteDrawInfo.anchorNote = midiNote;
-			if (!key.hasNote(noteName))
+			if (!key->hasNote(noteName))
 			{
 				noteDrawInfo.natural = true;
 				noteDrawInfo.sharp = false;//it's set to true in the E# and B# cases
@@ -280,7 +324,7 @@ void Keys::applyAnchorNoteAndAccents(int midiNote, Key& key, Chord& chord, NoteD
 		{
 			noteName = MidiMessage::getMidiNoteName(midiNote, true, false, 4);
 			noteDrawInfo.anchorNote = midiNote - 1;
-			if (!key.hasNote(noteName))
+			if (!key->hasNote(noteName))
 			{
 				noteDrawInfo.sharp = true;
 			}
@@ -288,7 +332,7 @@ void Keys::applyAnchorNoteAndAccents(int midiNote, Key& key, Chord& chord, NoteD
 		else
 		{
 			noteDrawInfo.anchorNote = midiNote;
-			if (!key.hasNote(noteName))
+			if (!key->hasNote(noteName))
 			{
 				noteDrawInfo.natural = true;
 				noteDrawInfo.flat = false;//it's set to true in the Cb and Fb cases
@@ -311,7 +355,7 @@ void Keys::applyAnchorNoteAndAccents(int midiNote, Key& key, Chord& chord, NoteD
 	//Change anchor note if we have sharp or flat
 	if (noteName.length() == 2)
 	{
-		bool applyAccent = !key.hasNote(noteName);
+		bool applyAccent = !key->hasNote(noteName);
 		if (noteName.containsChar('#'))
 		{
 			noteDrawInfo.anchorNote = midiNote - 1;
@@ -328,7 +372,7 @@ void Keys::applyAnchorNoteAndAccents(int midiNote, Key& key, Chord& chord, NoteD
 	else
 		noteDrawInfo.anchorNote = midiNote;
 
-	if (noteName.length() == 1 && !key.hasNote(noteName))
+	if (noteName.length() == 1 && !key->hasNote(noteName))
 		noteDrawInfo.natural = true;
 }
 
@@ -341,14 +385,14 @@ static std::map<String, String> minorToMajor = {
 	{ "B", "D" }
 };
 
-void Keys::applyAnchorNoteAndAccentsUsingChordKey(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo)
+void Keys::applyAnchorNoteAndAccentsUsingChordKey(int midiNote, Key* key, Chord& chord, NoteDrawInfo& noteDrawInfo)
 {
-	Key chordKey = chord.isMajor3rd() ? getKey(chord.rootNote) : getKey(minorToMajor[chord.rootNote]);
-	String noteName = MidiMessage::getMidiNoteName(midiNote, chordKey.numSharps > 0, false, 4);
+	Key* chordKey = chord.isMajor3rd() ? getKey(chord.rootNote) : getKey(minorToMajor[chord.rootNote]);
+	String noteName = MidiMessage::getMidiNoteName(midiNote, chordKey->numSharps > 0, false, 4);
 	if (noteName.length() == 1)
 	{
 		noteDrawInfo.anchorNote = midiNote;
-		if (!key.hasNote(noteName))
+		if (!key->hasNote(noteName))
 		{
 			noteDrawInfo.natural = true;
 			noteDrawInfo.sharp = false;
@@ -358,13 +402,13 @@ void Keys::applyAnchorNoteAndAccentsUsingChordKey(int midiNote, Key& key, Chord&
 	else if (noteName.endsWithChar('#'))
 	{
 		noteDrawInfo.anchorNote = midiNote - 1;
-		if (!key.hasNote(noteName))
+		if (!key->hasNote(noteName))
 			noteDrawInfo.sharp = true;
 	}
 	else if (noteName.endsWithChar('b'))
 	{
 		noteDrawInfo.anchorNote = midiNote + 1;
-		if (!key.hasNote(noteName))
+		if (!key->hasNote(noteName))
 			noteDrawInfo.flat = true;
 	}
 

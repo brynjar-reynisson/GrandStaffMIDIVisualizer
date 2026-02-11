@@ -408,6 +408,13 @@ void MainComponent::paint(Graphics& g)
     StaffCalculator staffCalculator(localBounds);
     drawStaff(g, staffCalculator);
     drawKeySignature(g, staffCalculator);
+
+    //for displaying particular note sets without needing MIDI input
+    //std::set<int> midiNotes{
+    //    11,81
+    //};
+
+
         
     //Find out where to place the notes
     NoteDrawInfo noteDrawInfos[127];
@@ -422,7 +429,8 @@ void MainComponent::paint(Graphics& g)
         }
         else
         {
-            keys.applyAnchorNoteAndAccents(midiNote, keys.getKey(keyMenu.getText()), chord, noteDrawInfos[midiNote]);
+            Key* key = keys.getKey(keyMenu.getText());
+            keys.applyAnchorNoteAndAccents(midiNote, key, chord, noteDrawInfos[midiNote]);
             staffCalculator.noteYPlacement(noteDrawInfos[midiNote].anchorNote, noteDrawInfos[midiNote], false, false, 12 * pluginModel->transposeOctaves);
         }
     }
@@ -558,14 +566,14 @@ void MainComponent::drawStaff(Graphics& g, StaffCalculator& staffCalculator)
 void MainComponent::drawKeySignature(Graphics& g, StaffCalculator& staffCalculator)
 {
     String keyName = keyMenu.getText();
-    Key key = keys.getKey(keyName);
-    if (key.name == "Sharps" || key.name == "Flats")
+    Key* key = keys.getKey(keyName);
+    if (key->name == "Sharps" || key->name == "Flats")
         return;
 
-    if (key.numSharps > 0)
-        drawSharps(g, staffCalculator, key.numSharps);
-    else if (key.numFlats > 0)
-        drawFlats(g, staffCalculator, key.numFlats);
+    if (key->numSharps > 0)
+        drawSharps(g, staffCalculator, key->numSharps);
+    else if (key->numFlats > 0)
+        drawFlats(g, staffCalculator, key->numFlats);
 }
 
 void MainComponent::drawSharps(Graphics& g, StaffCalculator& staffCalculator, int numSharps)

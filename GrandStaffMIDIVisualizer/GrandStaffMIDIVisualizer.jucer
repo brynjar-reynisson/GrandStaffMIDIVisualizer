@@ -142,7 +142,8 @@
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" bigIcon="llnL4s">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="GrandStaffMIDIVisualizer"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="GrandStaffMIDIVisualizer"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="GrandStaffMIDIVisualizer"
+                       linuxArchitecture="-m64"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path=""/>

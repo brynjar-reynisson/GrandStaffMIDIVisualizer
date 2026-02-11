@@ -155,7 +155,7 @@ struct Key
     int numSharps = 0;
     int numFlats = 0;
     bool hasNote(String& noteName);
-    String selectChordBaseNoteName(int midiNote, ChordType chordType);
+    const String selectChordBaseNoteName(int midiNote, ChordType chordType);
 
     inline static const String SHARPS = "Sharps";
     inline static const String FLATS = "Flats";
@@ -167,14 +167,15 @@ public:
     Keys();
     std::vector<String> getKeyNames();
     int getKeyIndex(String name);
-    Key getKey(String name);
+    Key* getKey(String name);
     String selectChordName(String keyName, String sharpChordName, String flatChordName);
-    void applyAnchorNoteAndAccents(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo);
+    void applyAnchorNoteAndAccents(int midiNote, Key* key, Chord& chord, NoteDrawInfo& noteDrawInfo);
 
 private:
+    void addKey(String name, int numSharps, int numFlats);
     void addKey(String name, std::list<String>& notes, int numSharps, int numFlats);
-    void applyAnchorNoteAndAccentsUsingChordKey(int midiNote, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo);
-    void applyDimAnchorNoteAndAccents(int midiNote, String& noteName, Key& key, Chord& chord, NoteDrawInfo& noteDrawInfo);
+    void applyAnchorNoteAndAccentsUsingChordKey(int midiNote, Key* key, Chord& chord, NoteDrawInfo& noteDrawInfo);
+    void applyDimAnchorNoteAndAccents(int midiNote, String& noteName, Key* key, Chord& chord, NoteDrawInfo& noteDrawInfo);
     std::map<String, Key> keys;
     std::vector<String> keyNames;
 };
@@ -188,7 +189,7 @@ public:
     * The chord recognition algorithm is based on the Chordback JSFX script written by Paul Heams
     * He can be contacted on X (Twitter) as @17BitRetro
     */
-    void name(std::set<int>& midiNotes, Key& key, Chord& chord);
+    void name(std::set<int>& midiNotes, Key* key, Chord& chord);
 
     static bool chordHasSuperPower(Chord& chord)
     {

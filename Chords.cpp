@@ -100,7 +100,7 @@ static String randomEasterEgg()
 static ChordType lastChordType = None;
 static String lastEasterEggName = "";
 
-void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
+void Chords::name(std::set<int>& midiNotes, Key* key, Chord& chord)
 {
 	if (midiNotes.size() < 2)
 	{
@@ -150,15 +150,15 @@ void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
 			if (it->first == chordMatcher)
 			{
 				chord.pattern = it->second;
-				if (key.name == Key::SHARPS)
+				if (key->name == Key::SHARPS)
 					chord.rootNote = MidiMessage::getMidiNoteName(curBassNote, true, false, 3);
-				else if(key.name == Key::FLATS)
+				else if(key->name == Key::FLATS)
 					chord.rootNote = MidiMessage::getMidiNoteName(curBassNote, false, false, 3);
 				else
 				{
 
 					ChordPattern chordPattern = it->second;
-					chord.rootNote = key.selectChordBaseNoteName(curBassNote, chordPattern.chordType);
+					chord.rootNote = key->selectChordBaseNoteName(curBassNote, chordPattern.chordType);
 					//TODO, add midi notes to Chord once that's part of the signature
 				}
 				break;
@@ -197,9 +197,9 @@ void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
 	if (bassNote == curBassNote)
 		return;
 
-	if (key.name == Key::SHARPS)
+	if (key->name == Key::SHARPS)
 		chord.bassNote = MidiMessage::getMidiNoteName(bassNote, true, false, 3);
-	else if (key.name == Key::FLATS)
+	else if (key->name == Key::FLATS)
 		chord.bassNote = MidiMessage::getMidiNoteName(bassNote, false, false, 3);
 	else
 	{
@@ -211,7 +211,7 @@ void Chords::name(std::set<int>& midiNotes, Key& key, Chord& chord)
 		}
 		else
 		{
-			chord.bassNote = MidiMessage::getMidiNoteName(bassNote, key.numSharps > 0, false, 4);
+			chord.bassNote = MidiMessage::getMidiNoteName(bassNote, key->numSharps > 0, false, 4);
 		}
 	}
 }

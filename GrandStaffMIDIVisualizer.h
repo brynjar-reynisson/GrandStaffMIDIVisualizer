@@ -77,7 +77,7 @@ public:
 
     void processBlock (AudioBuffer<float>& audio,  MidiBuffer& midi) override 
     {
-        audio.clear();
+        //audio.clear();
         ScopedLock lock(pluginModel.criticalSection);
         bool hasMidiChanges = false;
 
@@ -86,7 +86,7 @@ public:
         {
             if (result->getIsPlaying() || result->getIsRecording())
             {
-                unsigned __int64 now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                unsigned long long now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
                 if (pluginModel.holdNotes && now > lastPlayTime + 1000)
                 {
                     pluginModel.resetMidiNotes();
@@ -246,7 +246,7 @@ private:
     static BusesProperties getBusesLayout()
     {
         return BusesProperties()
-            .withInput("Input", juce::AudioChannelSet::stereo(), true)
+            //.withInput("Input", juce::AudioChannelSet::stereo(), true)
             .withOutput("Output", juce::AudioChannelSet::stereo(), true)
             ;
 
@@ -261,7 +261,7 @@ private:
 
     PluginModel pluginModel;
     VSTParameters vstParameters;
-    unsigned __int64 lastPlayTime = 0;
+    unsigned long long lastPlayTime = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GrandStaffMIDIVisualizerProcessor)
 };
